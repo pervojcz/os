@@ -4,11 +4,16 @@ import { join } from "path";
 import type { VariantCtx } from "~/utils/create-variant";
 
 export async function installCursor(ctx: VariantCtx) {
-  const url = "https://downloader.cursor.sh/linux/appImage/x64";
+  type Res = { downloadUrl: string; version: string };
+  const res = await fetch(
+    "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable"
+  );
+  const data = (await res.json()) as Res;
+
   const workdir = ctx.getTempDir("cursor", "appimage");
   const downloadPath = join(workdir, "cursor.AppImage");
 
-  await ctx.downloadFile(url, downloadPath);
+  await ctx.downloadFile(data.downloadUrl, downloadPath);
   await $`chmod +x ${downloadPath}`;
 
   await $`${downloadPath} --appimage-extract`;
