@@ -88,7 +88,7 @@ export default createVariant(
 
       // VS Code
       "code",
-      "cursor",
+      // "cursor",
 
       // Firefox PWA
       "firefoxpwa",
