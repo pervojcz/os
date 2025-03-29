@@ -38,9 +38,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v9
-
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
 
