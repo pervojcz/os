@@ -3,6 +3,7 @@ import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { createVariant, type VariantCtx } from "~/utils/create-variant";
 import { enableAutoUpdates } from "./scripts/auto-updates";
+import { installCursor } from "./scripts/cursor";
 import { installNode } from "./scripts/node";
 import { installPnpm } from "./scripts/pnpm";
 import { installPrompt } from "./scripts/prompt";
@@ -46,7 +47,7 @@ export default createVariant(
       "https://packages.microsoft.com/yumrepos/vscode/config.repo"
     );
 
-    await ctx.addRepositoryFromCopr("matthaigh27/cursor");
+    // await ctx.addRepositoryFromCopr("matthaigh27/cursor");
 
     await ctx.installPackages(
       // drivers
@@ -90,7 +91,7 @@ export default createVariant(
 
       // VS Code
       "code",
-      "cursor",
+      // "cursor",
 
       // Firefox PWA
       "firefoxpwa",
@@ -113,6 +114,9 @@ export default createVariant(
 
     // install SBP
     await installPrompt(ctx);
+
+    // install Cursor
+    await installCursor(ctx);
 
     // overrides for GNOME
     await ctx.createGschemaOverride("gnome-desktop-overrides", {
