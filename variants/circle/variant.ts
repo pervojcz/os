@@ -1,6 +1,7 @@
 import { $ } from "bun";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
-import { createVariant } from "~/utils/create-variant";
+import { createVariant, type VariantCtx } from "~/utils/create-variant";
 import { enableAutoUpdates } from "./scripts/auto-updates";
 import { installNode } from "./scripts/node";
 import { installPnpm } from "./scripts/pnpm";
@@ -11,7 +12,7 @@ export default createVariant(
     imageTitle: "Circle OS",
     imageDescription: "Personal OS image based on Fedora Silverblue",
     baseImageName: "silverblue",
-    baseImageVersion: "41",
+    baseImageVersion: "42",
     baseDirectory: __dirname,
   },
   async (ctx) => {
@@ -36,9 +37,10 @@ export default createVariant(
       `
     );
 
-    await ctx.addRepositoryFromUrl(
-      "https://download.docker.com/linux/fedora/docker-ce.repo"
-    );
+    // await ctx.addRepositoryFromUrl(
+    //   "https://download.docker.com/linux/fedora/docker-ce.repo"
+    // );
+    await enableDockerRepo(ctx); // TODO: remove when the repo is updated
 
     await ctx.addRepositoryFromUrl(
       "https://packages.microsoft.com/yumrepos/vscode/config.repo"
@@ -127,3 +129,17 @@ export default createVariant(
     await enableAutoUpdates();
   }
 );
+
+async function enableDockerRepo(ctx: VariantCtx) {
+  const url = "https://download.docker.com/linux/fedora/docker-ce.repo";
+  const fileName = url.split("/").reverse().shift()!;
+  const outputPath = join(ctx.getTempDir("repo", "docker", fileName), fileName);
+  await ctx.downloadFile(url, outputPath);
+
+  // edit the content to temporarly use F41 urls
+  const content = await readFile(outputPath, { encoding: "utf8" });
+  const newContent = content.replace("$releasever", "41");
+  await writeFile(outputPath, newContent, { encoding: "utf8" });
+
+  await ctx.addRepositoryFromFile(fileName, outputPath);
+}
