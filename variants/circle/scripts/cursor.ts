@@ -19,11 +19,5 @@ export async function installCursor(ctx: VariantCtx) {
   const extractedPath = join(workdir, "squashfs-root");
   const appDirPath = join(extractedPath, "usr");
 
-  console.log(await ctx.listFiles(workdir));
-  console.log(await ctx.listFiles(extractedPath));
-  console.log(await ctx.listFiles(appDirPath));
-
   await ctx.copyFiles(appDirPath, "/usr");
-
-  console.log(await ctx.listFiles("/usr/bin", (f) => f.includes("cursor")));
 }
