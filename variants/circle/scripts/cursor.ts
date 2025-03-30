@@ -17,6 +17,11 @@ export async function installCursor(ctx: VariantCtx) {
 
   await $`${downloadPath} --appimage-extract`;
   const extractedPath = join(workdir, "squashfs-root");
+  const appDirPath = join(extractedPath, "usr");
 
-  await ctx.copyFiles(join(extractedPath, "usr"), "/usr");
+  console.log(await ctx.listFiles(appDirPath));
+
+  await ctx.copyFiles(appDirPath, "/usr");
+
+  console.log(await ctx.listFiles("/usr/bin", (f) => f.includes("cursor")));
 }
