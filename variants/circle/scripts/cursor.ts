@@ -1,5 +1,4 @@
 import { $ } from "bun";
-import { rm, stat } from "fs/promises";
 import { join } from "path";
 import type { VariantCtx } from "~/utils/create-variant";
 
@@ -19,12 +18,5 @@ export async function installCursor(ctx: VariantCtx) {
   await $`${downloadPath} --appimage-extract`;
   const extractedPath = join(workdir, "squashfs-root");
 
-  const files = await ctx.listFiles(extractedPath);
-  for (const file of files) {
-    const stats = await stat(file);
-    if (stats.isDirectory()) continue;
-    await rm(file, { force: true });
-  }
-
-  await ctx.copyFiles(extractedPath);
+  await ctx.copyFiles(join(extractedPath, "usr"), "/usr");
 }
