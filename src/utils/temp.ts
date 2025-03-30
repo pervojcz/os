@@ -1,5 +1,6 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync } from "fs";
+import { resolve } from "path";
 
 export function getTempDir(...prefixes: [string, ...string[]]) {
-  return mkdtempSync(`os-src-${prefixes.join("-")}`);
+  return resolve(mkdtempSync(`os-src-${prefixes.join("-")}-`));
 }
