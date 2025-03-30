@@ -15,7 +15,7 @@ export async function installCursor(ctx: VariantCtx) {
   await ctx.downloadFile(data.downloadUrl, downloadPath);
   await $`chmod +x ${downloadPath}`;
 
-  await $`${downloadPath} --appimage-extract`;
+  await $`${downloadPath} --appimage-extract`.cwd(workdir);
   const extractedPath = join(workdir, "squashfs-root");
   const appDirPath = join(extractedPath, "usr");
 
