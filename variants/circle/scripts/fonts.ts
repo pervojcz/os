@@ -9,21 +9,27 @@ export async function downloadFonts(ctx: VariantCtx) {
 async function downloadGeist(ctx: VariantCtx) {
   const assets = await ctx.getLatestReleaseAssets("vercel/geist-font");
   for (const asset of assets) {
+    const fullFontName = asset.name.replace(".zip", "");
+    const fontName = fullFontName.split("-")[0];
     const tempDir = ctx.getTempDir("fonts", asset.name);
     const fontFile = join(tempDir, asset.name);
     const outputDir = join(tempDir, "output");
-    const fontDir = join(outputDir, asset.name.replace(".zip", ""), "ttf");
+    const fontDir = join(outputDir, fullFontName, "ttf");
 
     await ctx.downloadFile(asset.url, fontFile);
     await $`unzip ${fontFile} -d ${outputDir}`.quiet();
 
-    await ctx.copyFiles(fontDir, "/usr/share/fonts");
+    const installDir = join("/usr/share/fonts", fontName);
+    await $`mkdir -p ${installDir}`;
+    await ctx.copyFiles(fontDir, installDir);
   }
 }
 
 async function downloadInter(ctx: VariantCtx) {
   const assets = await ctx.getLatestReleaseAssets("rsms/inter");
   for (const asset of assets) {
+    const fullFontName = asset.name.replace(".zip", "");
+    const fontName = fullFontName.split("-")[0];
     const tempDir = ctx.getTempDir("fonts", asset.name);
     const fontFile = join(tempDir, asset.name);
     const outputDir = join(tempDir, "output");
@@ -32,6 +38,8 @@ async function downloadInter(ctx: VariantCtx) {
     await ctx.downloadFile(asset.url, fontFile);
     await $`unzip ${fontFile} -d ${outputDir}`.quiet();
 
-    await ctx.copyFiles(fontDir, "/usr/share/fonts");
+    const installDir = join("/usr/share/fonts", fontName);
+    await $`mkdir -p ${installDir}`;
+    await ctx.copyFiles(fontDir, installDir);
   }
 }
