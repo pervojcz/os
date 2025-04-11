@@ -4,6 +4,7 @@ import { join } from "path";
 import { createVariant, type VariantCtx } from "~/utils/create-variant";
 import { enableAutoUpdates } from "./scripts/auto-updates";
 import { installCursor } from "./scripts/cursor";
+import { downloadFonts } from "./scripts/fonts";
 import { installNode } from "./scripts/node";
 import { installPnpm } from "./scripts/pnpm";
 import { installPrompt } from "./scripts/prompt";
@@ -117,6 +118,9 @@ export default createVariant(
 
     // install Cursor
     await installCursor(ctx);
+
+    // install fonts
+    await downloadFonts(ctx);
 
     // overrides for GNOME
     await ctx.createGschemaOverride("gnome-desktop-overrides", {

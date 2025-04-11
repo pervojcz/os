@@ -9,6 +9,7 @@ import { copyFiles } from "./copy-files";
 import { createGschemaOverride } from "./create-gschema-override";
 import { createProfileScript } from "./create-profile-script";
 import { downloadFile } from "./download-file";
+import { getLatestReleaseAssets } from "./get-latest-release-assets";
 import { listFiles } from "./list-files";
 import { installPackages, uninstallPackages } from "./packages";
 import {
@@ -38,6 +39,7 @@ export async function getVariantCtx(baseDirectory: string) {
     fedoraVersion,
     getAddToPathSnippet,
     getAddToPathSnippetForSinglePath,
+    getLatestReleaseAssets,
     getTempDir,
     installPackages,
     listFiles,
