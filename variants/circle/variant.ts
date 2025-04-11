@@ -13,7 +13,7 @@ export default createVariant(
     imageTitle: "Circle OS",
     imageDescription: "Personal OS image based on Fedora Silverblue",
     baseImageName: "silverblue",
-    baseImageVersion: "42",
+    baseImageVersion: "41",
     baseDirectory: __dirname,
   },
   async (ctx) => {
@@ -41,7 +41,7 @@ export default createVariant(
     // await ctx.addRepositoryFromUrl(
     //   "https://download.docker.com/linux/fedora/docker-ce.repo"
     // );
-    await enableDockerRepo(ctx); // TODO: remove when the repo is updated
+    await enableDockerRepo(ctx); // TODO: remove when the repo is updated for 42
 
     await ctx.addRepositoryFromUrl(
       "https://packages.microsoft.com/yumrepos/vscode/config.repo"
