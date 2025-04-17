@@ -22,6 +22,8 @@ async function downloadGeist(ctx: VariantCtx) {
     const installDir = join("/usr/share/fonts", fontName);
     await $`mkdir -p ${installDir}`;
     await ctx.copyFiles(fontDir, installDir);
+
+    await $`fc-cache -f ${installDir}`.quiet();
   }
 }
 
@@ -41,5 +43,7 @@ async function downloadInter(ctx: VariantCtx) {
     const installDir = join("/usr/share/fonts", fontName);
     await $`mkdir -p ${installDir}`;
     await ctx.copyFiles(fontDir, installDir);
+
+    await $`fc-cache -f ${installDir}`.quiet();
   }
 }
