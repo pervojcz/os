@@ -124,7 +124,7 @@ export default createVariant(
 
     // overrides for GNOME
     await ctx.createGschemaOverride(
-      "gnome-desktop-overrides",
+      "custom.gnome",
       {
         schema: "org.gnome.mutter",
         overrides: {

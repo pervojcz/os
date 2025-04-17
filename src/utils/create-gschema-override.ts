@@ -13,7 +13,7 @@ export async function createGschemaOverride(
   const overrideStrings = overrides.map(overrideToString).join("\n\n");
   await $`mkdir -p /usr/share/glib-2.0/schemas`;
   await writeFile(
-    `/usr/share/glib-2.0/schemas/${overrideName}.gschema.override`,
+    `/usr/share/glib-2.0/schemas/99_${overrideName}.gschema.override`,
     overrideStrings,
     "utf-8"
   );
