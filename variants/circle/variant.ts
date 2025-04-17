@@ -146,6 +146,9 @@ export default createVariant(
 
     // enable auto-updates
     await enableAutoUpdates();
+
+    // remove GNOME Software plugin for Fedora upgrades
+    await $`rm /usr/lib64/gnome-software/plugins-*/libgs_plugin_fedora-pkgdb-collections.so`;
   }
 );
 
