@@ -123,12 +123,23 @@ export default createVariant(
     await downloadFonts(ctx);
 
     // overrides for GNOME
-    await ctx.createGschemaOverride("gnome-desktop-overrides", {
-      schema: "org.gnome.mutter",
-      overrides: {
-        "center-new-windows": "true",
+    await ctx.createGschemaOverride(
+      "gnome-desktop-overrides",
+      {
+        schema: "org.gnome.mutter",
+        overrides: {
+          "center-new-windows": "true",
+        },
       },
-    });
+      {
+        schema: "org.gnome.desktop.interface",
+        overrides: {
+          "font-name": "Geist 11",
+          "document-font-name": "Geist 11",
+          "monospace-font-name": "Geist Mono 10",
+        },
+      }
+    );
 
     // enable services
     await $`systemctl enable docker logid`;
