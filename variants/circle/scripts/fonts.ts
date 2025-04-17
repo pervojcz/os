@@ -2,8 +2,10 @@ import { $ } from "bun";
 import { join } from "path";
 import type { VariantCtx } from "~/utils/create-variant";
 
+const fonts = "/usr/share/fonts";
+
 export async function downloadFonts(ctx: VariantCtx) {
-  await $`mkdir -p /usr/share/fonts`;
+  await $`mkdir -p ${fonts}`;
 
   await Promise.all([
     downloadGeist(ctx),
@@ -26,7 +28,7 @@ async function downloadGeist(ctx: VariantCtx) {
     await ctx.downloadFile(asset.url, fontFile);
     await $`unzip ${fontFile} -d ${outputDir}`.quiet();
 
-    await ctx.copyFiles(fontDir, "/usr/local/share/fonts");
+    await ctx.copyFiles(fontDir, fonts);
   }
 }
 
@@ -41,7 +43,7 @@ async function downloadInter(ctx: VariantCtx) {
     await ctx.downloadFile(asset.url, fontFile);
     await $`unzip ${fontFile} -d ${outputDir}`.quiet();
 
-    await ctx.copyFiles(fontDir, "/usr/local/share/fonts");
+    await ctx.copyFiles(fontDir, fonts);
   }
 }
 
@@ -57,5 +59,5 @@ async function downloadKanit(ctx: VariantCtx) {
   await ctx.downloadFile(url, fontFile);
   await $`unzip ${fontFile} -d ${outputDir}`.quiet();
 
-  await ctx.copyFiles(fontDir, "/usr/local/share/fonts");
+  await ctx.copyFiles(fontDir, fonts);
 }
