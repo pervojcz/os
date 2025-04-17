@@ -3,7 +3,7 @@ import { join } from "path";
 import type { VariantCtx } from "~/utils/create-variant";
 
 export async function downloadFonts(ctx: VariantCtx) {
-  await $`mkdir -p /var/usrlocal/share/fonts`;
+  await $`mkdir -p /usr/share/fonts`;
 
   await Promise.all([
     downloadGeist(ctx),
