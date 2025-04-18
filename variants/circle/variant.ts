@@ -134,9 +134,9 @@ export default createVariant(
       {
         schema: "org.gnome.desktop.interface",
         overrides: {
-          "font-name": "Geist 11",
-          "document-font-name": "Geist 11",
-          "monospace-font-name": "Geist Mono 10",
+          "font-name": "'Geist 11'",
+          "document-font-name": "'Geist 11'",
+          "monospace-font-name": "'Geist Mono 10'",
         },
       }
     );
