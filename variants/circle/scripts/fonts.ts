@@ -54,7 +54,7 @@ async function downloadKanit(ctx: VariantCtx) {
   const tempDir = ctx.getTempDir("fonts", "kanit");
   const fontFile = join(tempDir, "kanit.zip");
   const outputDir = join(tempDir, "output");
-  const fontDir = join(outputDir, "fonts", "ttf");
+  const fontDir = join(outputDir, "kanit-master", "fonts", "ttf");
 
   await ctx.downloadFile(url, fontFile);
   await $`unzip ${fontFile} -d ${outputDir}`.quiet();
