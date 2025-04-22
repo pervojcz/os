@@ -22,8 +22,11 @@ export async function installNode(ctx: VariantCtx) {
   await $`mv ${unzipContentPath} ${nodePath}`;
 
   await ctx.createProfileScript(
-    "node-home",
-    `export NODEJS_HOME="${nodePath}"`
+    "node-vars",
+    `
+      export NODEJS_HOME="${nodePath}"
+      export NODE_COMPILE_CACHE="$HOME/.cache/nodejs-compile-cache"
+    `
   );
   await ctx.addToPath("node-bin", "$NODEJS_HOME/bin");
 
