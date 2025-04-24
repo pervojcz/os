@@ -3,12 +3,12 @@ import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { createVariant, type VariantCtx } from "~/utils/create-variant";
 import { enableAutoUpdates } from "./scripts/auto-updates";
+import { installBun } from "./scripts/bun";
 import { installCursor } from "./scripts/cursor";
 import { downloadFonts } from "./scripts/fonts";
 import { installNode } from "./scripts/node";
 import { installPnpm } from "./scripts/pnpm";
 import { installPrompt } from "./scripts/prompt";
-
 export default createVariant(
   {
     imageTitle: "Circle OS",
@@ -106,6 +106,9 @@ export default createVariant(
       (file) => file.endsWith(".rpm")
     );
     await ctx.installPackages(...rpms);
+
+    // install Bun
+    await installBun(ctx);
 
     // install Node
     await installNode(ctx);
