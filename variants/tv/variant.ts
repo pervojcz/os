@@ -1,6 +1,6 @@
 import Core from "../_core/variant";
 
-Core.extend(
+export default Core.extend(
   {
     imageTitle: "TV OS",
     imageDescription: "Custom TV OS image based on Fedora Silverblue",

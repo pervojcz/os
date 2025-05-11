@@ -3,7 +3,7 @@ import { join } from "path";
 import Core from "../_core/variant";
 import { installCursor } from "./scripts/cursor";
 
-Core.extend(
+export default Core.extend(
   {
     imageTitle: "Circle OS",
     imageDescription: "Personal OS image based on Fedora Silverblue",
