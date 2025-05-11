@@ -1,6 +1,6 @@
 import { $ } from "bun";
 import { join } from "path";
-import Core from "../core/variant";
+import Core from "../_core/variant";
 import { installCursor } from "./scripts/cursor";
 
 Core.extend(

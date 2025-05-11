@@ -1,4 +1,4 @@
-import Core from "../core/variant";
+import Core from "../_core/variant";
 
 Core.extend(
   {
