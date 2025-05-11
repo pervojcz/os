@@ -23,7 +23,7 @@ export function createVariant(
   }
 
   function extend(
-    extMetadata: Omit<VariantMetadata, "baseImage">,
+    extMetadata: Omit<VariantMetadata, "baseImageName" | "baseImageVersion">,
     extVariant: VariantFunction
   ) {
     return createVariant({ ...metadata, ...extMetadata }, async (ctx) => {
