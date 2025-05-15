@@ -68,6 +68,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install -y dbus-x11
+          sudo loginctl enable-linger 1000
           bun install
 
       - name: Build and push image
