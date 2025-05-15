@@ -28,7 +28,7 @@ env:
 jobs:
   variants:
     name: Prepare list of variants
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     outputs:
       variants: ${{ steps.json.outputs.variants }}
     steps:
@@ -46,7 +46,7 @@ jobs:
 
   build_push:
     name: Build and push image
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2204
 
     permissions:
       contents: read
@@ -62,11 +62,13 @@ jobs:
       - name: Checkout Push to Registry action
         uses: actions/checkout@v4
 
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v9
-
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt install -y dbus-x11
+          bun install
 
       - name: Build and push image
         run: bun script/build-image.ts ${{ matrix.variant }}
