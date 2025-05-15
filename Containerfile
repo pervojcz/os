@@ -16,6 +16,8 @@ RUN set -ouex pipefail; \
     VARIANT_NAME=${VARIANT_NAME} /tmp/os-script/src/run-script.sh; \
     ostree container commit;
 
+RUN rm -rf /tmp/os-script
+
 ## NOTES:
 # - /var/lib/alternatives is required to prevent failure with some RPM installs
 # - All RUN commands must end with ostree container commit
