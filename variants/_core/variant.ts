@@ -65,7 +65,8 @@ export default createVariant(
       "python3-pip",
       "python3-virtualenv",
       "python3-wheel",
-      "python3-devel"
+      "python3-devel",
+      "python3-tkinter"
     );
 
     const rpms = await ctx.listFiles(
