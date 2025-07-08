@@ -20,8 +20,8 @@ export default createVariant(
     await ctx.copyFiles(join(ctx.baseDirectory, "files"));
 
     await ctx.installPackages(
-      `https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${ctx.fedoraVersion}.noarch.rpm`,
-      `https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${ctx.fedoraVersion}.noarch.rpm`
+      `https://ftp.fi.muni.cz/pub/linux/rpmfusion/free/fedora/rpmfusion-free-release-${ctx.fedoraVersion}.noarch.rpm`,
+      `https://ftp.fi.muni.cz/pub/linux/rpmfusion/nonfree/fedora/rpmfusion-nonfree-release-${ctx.fedoraVersion}.noarch.rpm`
     );
 
     await ctx.addRepositoryFromUrl(
