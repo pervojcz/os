@@ -43,8 +43,11 @@ export default Core.extend(
       // Firefox PWA
       "firefoxpwa",
 
-      // AWS CLI
-      "awscli"
+      // Virtualization
+      "virt-install",
+      "libvirt-daemon-config-network",
+      "libvirt-daemon-kvm",
+      "qemu-kvm"
     );
 
     // install Cursor
