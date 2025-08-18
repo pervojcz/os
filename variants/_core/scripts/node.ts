@@ -30,7 +30,7 @@ export async function installNode(ctx: VariantCtx) {
   );
   await ctx.addToPath("node-bin", "$NODEJS_HOME/bin");
 
-  await $`ln -s ${nodePath}/bin/node /usr/local/bin/node`;
+  await $`ln -s ${nodePath}/bin/node /usr/bin/node`;
 
   const nodeEtcPath = join(nodePath, "etc");
   const npmrcPath = join(nodeEtcPath, "npmrc");
