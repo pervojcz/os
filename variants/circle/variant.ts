@@ -32,6 +32,8 @@ export default Core.extend(
 
     // await ctx.addRepositoryFromCopr("matthaigh27/cursor");
 
+    await ctx.addRepositoryFromCopr("jdxcode/mise");
+
     await ctx.installPackages(
       // drivers
       "logiops",
@@ -39,6 +41,9 @@ export default Core.extend(
       // VS Code
       "code",
       // "cursor",
+
+      // Tools
+      "mise",
 
       // Firefox PWA
       "firefoxpwa",
