@@ -1,23 +1,18 @@
-import { $ } from "bun";
-import { join } from "path";
 import type { VariantCtx } from "~/utils/create-variant";
 
 export async function installCursor(ctx: VariantCtx) {
-  type Res = { downloadUrl: string; version: string };
-  const res = await fetch(
-    "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable"
+  await ctx.addRepositoryFromString(
+    "cursor.repo",
+    `
+      [cursor]
+      name=Cursor
+      baseurl=https://downloads.cursor.com/yumrepo
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://downloads.cursor.com/keys/anysphere.asc
+      repo_gpgcheck=1
+    `
   );
-  const data = (await res.json()) as Res;
 
-  const workdir = ctx.getTempDir("cursor", "appimage");
-  const downloadPath = join(workdir, "cursor.AppImage");
-
-  await ctx.downloadFile(data.downloadUrl, downloadPath);
-  await $`chmod +x ${downloadPath}`;
-
-  await $`${downloadPath} --appimage-extract`.cwd(workdir);
-  const extractedPath = join(workdir, "squashfs-root");
-  const appDirPath = join(extractedPath, "usr");
-
-  await ctx.copyFiles(appDirPath, "/usr");
+  await ctx.installPackages("cursor");
 }
