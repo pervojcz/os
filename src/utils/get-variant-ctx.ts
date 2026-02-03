@@ -9,7 +9,7 @@ import { copyFiles } from "./copy-files";
 import { createGschemaOverride } from "./create-gschema-override";
 import { createProfileScript } from "./create-profile-script";
 import { downloadFile } from "./download-file";
-import { getLatestReleaseAssets } from "./get-latest-release-assets";
+import { getReleaseAssets, listReleases } from "./github-releases";
 import { listFiles } from "./list-files";
 import { installPackages, uninstallPackages } from "./packages";
 import {
@@ -23,6 +23,7 @@ import { trimLines } from "./trim-lines";
 
 export async function getVariantCtx(baseDirectory: string) {
   const fedoraVersion = (await $`rpm -E %fedora`.text()).trim();
+  const architecture = (await $`uname -m`.text()).trim();
 
   return {
     addRepositoryFromFile,
@@ -37,9 +38,11 @@ export async function getVariantCtx(baseDirectory: string) {
     createProfileScript,
     downloadFile,
     fedoraVersion,
+    architecture,
     getAddToPathSnippet,
     getAddToPathSnippetForSinglePath,
-    getLatestReleaseAssets,
+    listReleases,
+    getReleaseAssets,
     getTempDir,
     installPackages,
     listFiles,

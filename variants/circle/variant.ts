@@ -1,6 +1,7 @@
 import { $ } from "bun";
 import { join } from "path";
 import Core from "../_core/variant";
+import { installBitwarden } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
 
 export default Core.extend(
@@ -57,6 +58,9 @@ export default Core.extend(
 
     // install Cursor
     await installCursor(ctx);
+
+    // install Bitwarden
+    await installBitwarden(ctx);
 
     // enable services
     await $`systemctl enable logid`;

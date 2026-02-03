@@ -13,7 +13,7 @@ export default createVariant(
     imageTitle: "Core Image OS",
     imageDescription: "Core Image OS based on Fedora Silverblue",
     baseImageName: "silverblue",
-    baseImageVersion: "42",
+    baseImageVersion: "43",
     baseDirectory: __dirname,
   },
   async (ctx) => {
