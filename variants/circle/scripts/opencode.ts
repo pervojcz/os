@@ -18,7 +18,7 @@ export async function installOpencode(ctx: VariantCtx) {
   const cliFileName = join(tempDir, cliAsset.name);
   await ctx.downloadFile(cliAsset.url, cliFileName);
   await $`tar -xzf ${cliFileName} -C ${tempDir}`;
-  await $`${tempDir}/opencode /usr/bin/opencode`;
+  await $`mv ${tempDir}/opencode /usr/bin/opencode`;
 
   // desktop
   await ctx.installPackages(desktopAsset.url);
