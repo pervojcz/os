@@ -32,8 +32,6 @@ export default Core.extend(
       "https://packages.microsoft.com/yumrepos/vscode/config.repo",
     );
 
-    // await ctx.addRepositoryFromCopr("matthaigh27/cursor");
-
     await ctx.addRepositoryFromCopr("jdxcode/mise");
 
     await ctx.installPackages(
@@ -42,13 +40,19 @@ export default Core.extend(
 
       // VS Code
       "code",
-      // "cursor",
 
       // Tools
       "mise",
 
-      // Firefox PWA
-      "firefoxpwa",
+      // build essentials
+      "make",
+      "cmake",
+      "automake",
+      "gcc",
+      "gcc-c++",
+      "meson",
+      "ninja-build",
+      "pkg-config",
 
       // Virtualization
       "virt-install",
