@@ -1,4 +1,3 @@
-import { join } from "path";
 import type { VariantCtx } from "~/utils/create-variant";
 
 export async function installBitwarden(ctx: VariantCtx) {
@@ -11,11 +10,9 @@ export async function installBitwarden(ctx: VariantCtx) {
   const rpm = assets.find((a) => a.name.endsWith(`-${ctx.architecture}.rpm`));
   if (!rpm) throw new Error("No Bitwarden desktop .rpm found");
 
-  const tempDir = ctx.getTempDir("bitwarden", rpm.name);
-  const rpmFile = join(tempDir, rpm.name);
+  // const tempDir = ctx.getTempDir("bitwarden", rpm.name);
+  // const rpmFile = join(tempDir, rpm.name);
 
-  await ctx.downloadFile(rpm.url, rpmFile);
-
-  await ctx.installPackages("libXScrnSaver");
-  await ctx.installPackages(rpmFile);
+  // await ctx.downloadFile(rpm.url, rpmFile);
+  await ctx.installPackages(rpm.url);
 }
