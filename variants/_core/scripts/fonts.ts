@@ -17,7 +17,7 @@ export async function downloadFonts(ctx: VariantCtx) {
 }
 
 async function downloadGeist(ctx: VariantCtx) {
-  const assets = await ctx.getLatestReleaseAssets("vercel/geist-font");
+  const assets = await ctx.getReleaseAssets("vercel/geist-font");
   for (const asset of assets) {
     const fullFontName = asset.name.replace(".zip", "");
     const tempDir = ctx.getTempDir("fonts", asset.name);
@@ -33,7 +33,7 @@ async function downloadGeist(ctx: VariantCtx) {
 }
 
 async function downloadInter(ctx: VariantCtx) {
-  const assets = await ctx.getLatestReleaseAssets("rsms/inter");
+  const assets = await ctx.getReleaseAssets("rsms/inter");
   for (const asset of assets) {
     const tempDir = ctx.getTempDir("fonts", asset.name);
     const fontFile = join(tempDir, asset.name);
