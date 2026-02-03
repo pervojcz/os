@@ -15,5 +15,7 @@ export async function installBitwarden(ctx: VariantCtx) {
   const rpmFile = join(tempDir, rpm.name);
 
   await ctx.downloadFile(rpm.url, rpmFile);
+
+  await ctx.installPackages("libXScrnSaver");
   await ctx.installPackages(rpmFile);
 }
