@@ -21,11 +21,11 @@ export default createVariant(
 
     await ctx.installPackages(
       `https://ftp.fi.muni.cz/pub/linux/rpmfusion/free/fedora/rpmfusion-free-release-${ctx.fedoraVersion}.noarch.rpm`,
-      `https://ftp.fi.muni.cz/pub/linux/rpmfusion/nonfree/fedora/rpmfusion-nonfree-release-${ctx.fedoraVersion}.noarch.rpm`
+      `https://ftp.fi.muni.cz/pub/linux/rpmfusion/nonfree/fedora/rpmfusion-nonfree-release-${ctx.fedoraVersion}.noarch.rpm`,
     );
 
     await ctx.addRepositoryFromUrl(
-      "https://download.docker.com/linux/fedora/docker-ce.repo"
+      "https://download.docker.com/linux/fedora/docker-ce.repo",
     );
 
     await ctx.installPackages(
@@ -65,12 +65,12 @@ export default createVariant(
       "python3-pip",
       "python3-virtualenv",
       "python3-wheel",
-      "python3-devel"
+      "python3-devel",
     );
 
     const rpms = await ctx.listFiles(
       join(ctx.baseDirectory, "packages"),
-      (file) => file.endsWith(".rpm")
+      (file) => file.endsWith(".rpm"),
     );
     await ctx.installPackages(...rpms);
 
@@ -105,7 +105,7 @@ export default createVariant(
           "document-font-name": "'Geist 11'",
           "monospace-font-name": "'Geist Mono 10'",
         },
-      }
+      },
     );
 
     // enable services
@@ -116,5 +116,5 @@ export default createVariant(
 
     // remove GNOME Software plugin for Fedora upgrades
     await $`rm /usr/lib64/gnome-software/plugins-*/libgs_plugin_fedora-pkgdb-collections.so`;
-  }
+  },
 );

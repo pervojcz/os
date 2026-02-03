@@ -11,7 +11,7 @@ export async function installCursor(ctx: VariantCtx) {
       gpgcheck=1
       gpgkey=https://downloads.cursor.com/keys/anysphere.asc
       repo_gpgcheck=1
-    `
+    `,
   );
 
   await ctx.installPackages("cursor");
