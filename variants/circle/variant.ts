@@ -3,6 +3,7 @@ import { join } from "path";
 import Core from "../_core/variant";
 import { installBitwarden } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
+import { installOpencode } from "./scripts/opencode";
 
 export default Core.extend(
   {
@@ -24,11 +25,11 @@ export default Core.extend(
         repo_gpgcheck=1
         gpgcheck=0
         enabled=1
-      `
+      `,
     );
 
     await ctx.addRepositoryFromUrl(
-      "https://packages.microsoft.com/yumrepos/vscode/config.repo"
+      "https://packages.microsoft.com/yumrepos/vscode/config.repo",
     );
 
     // await ctx.addRepositoryFromCopr("matthaigh27/cursor");
@@ -53,16 +54,19 @@ export default Core.extend(
       "virt-install",
       "libvirt-daemon-config-network",
       "libvirt-daemon-kvm",
-      "qemu-kvm"
+      "qemu-kvm",
     );
 
     // install Cursor
     await installCursor(ctx);
+
+    // install Opencode
+    await installOpencode(ctx);
 
     // install Bitwarden
     await installBitwarden(ctx);
 
     // enable services
     await $`systemctl enable logid`;
-  }
+  },
 );
