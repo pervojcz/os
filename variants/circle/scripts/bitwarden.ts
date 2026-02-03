@@ -26,4 +26,7 @@ export async function installBitwarden(ctx: VariantCtx) {
 
   await ctx.copyFiles(extractedDir);
   await $`ln -s /usr/share/bitwarden/bitwarden /usr/bin/bitwarden`;
+
+  // install dependencies
+  await ctx.installPackages("libXScrnSaver");
 }
