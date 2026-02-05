@@ -4,6 +4,7 @@ import Core from "../_core/variant";
 import { installBitwarden } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
 import { installOpencode } from "./scripts/opencode";
+import { installVicinae } from "./scripts/vicinae";
 
 export default Core.extend(
   {
@@ -69,6 +70,9 @@ export default Core.extend(
 
     // install Bitwarden
     await installBitwarden(ctx);
+
+    // install Vicinae
+    await installVicinae(ctx);
 
     // enable services
     await $`systemctl enable logid`;
