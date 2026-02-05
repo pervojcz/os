@@ -22,4 +22,5 @@ export async function installOpencode(ctx: VariantCtx) {
 
   // desktop
   await ctx.installPackages(desktopAsset.url);
+  await $`sed -i 's|^Exec=|Exec=env OC_ALLOW_WAYLAND=1 |g' /usr/share/applications/OpenCode.desktop`;
 }
