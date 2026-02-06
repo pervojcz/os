@@ -34,4 +34,27 @@ export async function installBitwarden(ctx: VariantCtx) {
 
   // install dependencies
   await ctx.installPackages("libXScrnSaver");
+
+  // install bitwarden cli
+  const cliReleases = releases.filter((r) =>
+    r.tag_name.startsWith("cli-v"),
+  );
+  const latestCli = cliReleases.at(0)?.tag_name;
+  if (!latestCli) throw new Error("No Bitwarden CLI release found");
+
+  const cliAssets = await ctx.getReleaseAssets(
+    "bitwarden/clients",
+    `tags/${latestCli}`,
+  );
+  const cliZip = cliAssets.find(
+    (a) => a.name.startsWith("bw-linux") && a.name.endsWith(".zip"),
+  );
+  if (!cliZip) throw new Error("No Bitwarden CLI zip found");
+
+  const cliTempDir = ctx.getTempDir("bitwarden-cli", cliZip.name);
+  const cliZipFile = join(cliTempDir, cliZip.name);
+
+  await ctx.downloadFile(cliZip.url, cliZipFile);
+  await $`unzip ${cliZipFile} -d ${cliTempDir}`.quiet();
+  await $`install -Dm755 ${join(cliTempDir, "bw")} /usr/bin/bw`;
 }
