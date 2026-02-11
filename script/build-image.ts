@@ -16,6 +16,9 @@ const registryPassword = process.env.REGISTRY_PASSWORD;
 
 const imageNamePrefix = process.env.IMAGE_NAME?.toLocaleLowerCase() ?? "os";
 const imageRegistry = process.env.IMAGE_REGISTRY?.toLocaleLowerCase();
+const podmanBuildArgs = (process.env.PODMAN_BUILD_ARGS ?? "")
+  .split(/\s+/)
+  .filter(Boolean);
 
 const repo = process.env.GH_REPO;
 const commitSha = process.env.GITHUB_SHA?.slice(0, 7);
@@ -82,6 +85,7 @@ try {
   await $`
     podman build \
       --file=${containerfilePath} \
+      ${podmanBuildArgs} \
       ${tags.map((tag) => ["--tag", tag])} \
       ${labels.map((label) => ["--label", label])} \
       ${dir}

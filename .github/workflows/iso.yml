@@ -9,7 +9,7 @@ env:
 jobs:
   variants:
     name: Prepare list of variants
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       variants: ${{ steps.json.outputs.variants }}
     steps:
@@ -27,7 +27,7 @@ jobs:
 
   generate-iso:
     name: Generate an ISO image
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
 
     needs: variants
     strategy:
