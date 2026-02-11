@@ -1,6 +1,6 @@
-import { tmpdir } from "os";
 import { $ } from "bun";
 import { exists, unlink, writeFile } from "fs/promises";
+import { tmpdir } from "os";
 import { dirname, join } from "path";
 import { generateContainerfile } from "../src/utils/generate-containerfile";
 import { importVariantFromArgs } from "../src/utils/import-variant";
@@ -67,8 +67,17 @@ const labels = getLabels();
 
 const baseImage = metadata.baseImageName + ":" + metadata.baseImageVersion;
 
-const containerfilePath = join(tmpdir(), `os-containerfile-${variantName}-${Date.now()}`);
-await writeFile(containerfilePath, generateContainerfile(taskNames), "utf8");
+const containerfilePath = join(
+  tmpdir(),
+  `os-containerfile-${variantName}-${Date.now()}`,
+);
+
+await writeFile(
+  containerfilePath,
+  generateContainerfile(variantName, taskNames),
+  "utf8",
+);
+
 try {
   await $`
     podman build \
