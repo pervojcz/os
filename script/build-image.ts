@@ -13,6 +13,9 @@ const registryPassword = process.env.REGISTRY_PASSWORD;
 
 const imageNamePrefix = process.env.IMAGE_NAME?.toLocaleLowerCase() ?? "os";
 const imageRegistry = process.env.IMAGE_REGISTRY?.toLocaleLowerCase();
+const podmanBuildArgs = (process.env.PODMAN_BUILD_ARGS ?? "")
+  .split(/\s+/)
+  .filter(Boolean);
 
 const repo = process.env.GH_REPO;
 const commitSha = process.env.GITHUB_SHA?.slice(0, 7);
@@ -66,6 +69,7 @@ const baseImage = metadata.baseImageName + ":" + metadata.baseImageVersion;
 
 await $`
   podman build \
+    ${podmanBuildArgs} \
     --build-arg="VARIANT_NAME=${variantName}" \
     --build-arg="BASE_IMAGE=${baseImage}" \
     ${tags.map((tag) => ["--tag", tag])} \

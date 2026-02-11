@@ -47,6 +47,8 @@ jobs:
   build_push:
     name: Build and push image
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      PODMAN_BUILD_ARGS: "--cgroup-manager=cgroupfs --runtime=runc"
 
     permissions:
       contents: read
