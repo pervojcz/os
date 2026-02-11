@@ -6,6 +6,7 @@ export function generateContainerfile(
     .map(
       (taskName) => `# Task: ${taskName}
 RUN set -ouex pipefail; \\
+    mkdir -p /var/lib/alternatives; \\
     bun /tmp/os-script/src/run-task.ts ${variantName} ${taskName}; \\
     ostree container commit;`,
     )
