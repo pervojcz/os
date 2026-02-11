@@ -1,6 +1,7 @@
 import { $ } from "bun";
 import { join } from "path";
 import Core from "../_core/variant";
+import { createTask } from "~/utils/create-variant";
 import { installBitwarden } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
 import { installOpencode } from "./scripts/opencode";
@@ -12,12 +13,13 @@ export default Core.extend(
     imageDescription: "Personal OS image based on Fedora Silverblue",
     baseDirectory: __dirname,
   },
-  async (ctx) => {
-    await ctx.copyFiles(join(ctx.baseDirectory, "files"));
+  [
+    createTask("circle", async (ctx) => {
+      await ctx.copyFiles(join(ctx.baseDirectory, "files"));
 
-    await ctx.addRepositoryFromString(
-      "firefoxpwa.repo",
-      `
+      await ctx.addRepositoryFromString(
+        "firefoxpwa.repo",
+        `
         [firefoxpwa]
         name=FirefoxPWA
         metadata_expire=300
@@ -27,54 +29,55 @@ export default Core.extend(
         gpgcheck=0
         enabled=1
       `,
-    );
+      );
 
-    await ctx.addRepositoryFromUrl(
-      "https://packages.microsoft.com/yumrepos/vscode/config.repo",
-    );
+      await ctx.addRepositoryFromUrl(
+        "https://packages.microsoft.com/yumrepos/vscode/config.repo",
+      );
 
-    await ctx.addRepositoryFromCopr("jdxcode/mise");
+      await ctx.addRepositoryFromCopr("jdxcode/mise");
 
-    await ctx.installPackages(
-      // drivers
-      "logiops",
+      await ctx.installPackages(
+        // drivers
+        "logiops",
 
-      // VS Code
-      "code",
+        // VS Code
+        "code",
 
-      // Tools
-      "mise",
+        // Tools
+        "mise",
 
-      // build essentials
-      "make",
-      "cmake",
-      "automake",
-      "gcc",
-      "gcc-c++",
-      "meson",
-      "ninja-build",
-      "pkg-config",
+        // build essentials
+        "make",
+        "cmake",
+        "automake",
+        "gcc",
+        "gcc-c++",
+        "meson",
+        "ninja-build",
+        "pkg-config",
 
-      // Virtualization
-      "virt-install",
-      "libvirt-daemon-config-network",
-      "libvirt-daemon-kvm",
-      "qemu-kvm",
-    );
+        // Virtualization
+        "virt-install",
+        "libvirt-daemon-config-network",
+        "libvirt-daemon-kvm",
+        "qemu-kvm",
+      );
 
-    // install Cursor
-    await installCursor(ctx);
+      // install Cursor
+      await installCursor(ctx);
 
-    // install Opencode
-    await installOpencode(ctx);
+      // install Opencode
+      await installOpencode(ctx);
 
-    // install Bitwarden
-    await installBitwarden(ctx);
+      // install Bitwarden
+      await installBitwarden(ctx);
 
-    // install Vicinae
-    await installVicinae(ctx);
+      // install Vicinae
+      await installVicinae(ctx);
 
-    // enable services
-    await $`systemctl enable logid`;
-  },
+      // enable services
+      await $`systemctl enable logid`;
+    }),
+  ],
 );

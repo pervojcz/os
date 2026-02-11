@@ -1,4 +1,5 @@
 import Core from "../_core/variant";
+import { createTask } from "~/utils/create-variant";
 
 export default Core.extend(
   {
@@ -6,10 +7,12 @@ export default Core.extend(
     imageDescription: "Custom TV OS image based on Fedora Silverblue",
     baseDirectory: __dirname,
   },
-  async (ctx) => {
-    await ctx.installPackages(
-      // drivers
-      "kodi"
-    );
-  }
+  [
+    createTask("tv", async (ctx) => {
+      await ctx.installPackages(
+        // drivers
+        "kodi",
+      );
+    }),
+  ],
 );
