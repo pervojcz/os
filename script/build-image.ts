@@ -85,7 +85,7 @@ try {
   await $`
     podman build \
       --file=${containerfilePath} \
-      ${podmanBuildArgs}
+      ${podmanBuildArgs} \
       ${tags.map((tag) => ["--tag", tag])} \
       ${labels.map((label) => ["--label", label])} \
       ${dir}

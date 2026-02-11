@@ -64,9 +64,6 @@ jobs:
       - name: Checkout Push to Registry action
         uses: actions/checkout@v6
 
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v9
-
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
 
