@@ -2,12 +2,13 @@ export function generateContainerfile(
   variantName: string,
   taskNames: string[],
 ) {
+  const scriptRoot = "/usr/lib/os-script";
   const taskBlocks = taskNames
     .map(
       (taskName) => `# Task: ${taskName}
 RUN set -ouex pipefail; \\
     mkdir -p /var/lib/alternatives; \\
-    bun /tmp/os-script/src/run-task.ts ${variantName} ${taskName}; \\
+    bun ${scriptRoot}/src/run-task.ts ${variantName} ${taskName}; \\
     ostree container commit;`,
     )
     .join("\n\n");
@@ -15,11 +16,11 @@ RUN set -ouex pipefail; \\
   return `ARG BASE_IMAGE
 FROM quay.io/fedora-ostree-desktops/\${BASE_IMAGE}
 
-COPY . /tmp/os-script
+COPY . ${scriptRoot}
 RUN set -ouex pipefail; \\
-    chmod +x /tmp/os-script/src/install-bun.sh; \\
-    /tmp/os-script/src/install-bun.sh; \\
-    (cd /tmp/os-script; bun install); \\
+    chmod +x ${scriptRoot}/src/install-bun.sh; \\
+    ${scriptRoot}/src/install-bun.sh; \\
+    (cd ${scriptRoot}; bun install); \\
     ostree container commit;
 
 ${taskBlocks}
