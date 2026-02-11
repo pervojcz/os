@@ -18,7 +18,7 @@ COPY . /tmp/os-script
 RUN set -ouex pipefail; \\
     chmod +x /tmp/os-script/src/install-bun.sh; \\
     /tmp/os-script/src/install-bun.sh; \\
-    bun install; \\
+    (cd /tmp/os-script; bun install); \\
     ostree container commit;
 
 ${taskBlocks}
