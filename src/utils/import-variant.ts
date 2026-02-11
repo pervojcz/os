@@ -15,16 +15,14 @@ export async function importVariant(variantName: string) {
   const normalizedVariantName = variantName.trim();
 
   if (!normalizedVariantName) {
-    throw new Error(
-      "Missing required argument <variantName>. Example: bun src/start-script.ts <variantName>",
-    );
+    throw new Error("Missing required argument <variantName>.");
   }
 
   const availableVariants = await listAvailableVariants();
 
   if (!availableVariants.includes(normalizedVariantName)) {
     throw new Error(
-      `Unknown variant \"${normalizedVariantName}\". Valid variants: ${availableVariants.join(", ") || "none"}`,
+      `Unknown variant "${normalizedVariantName}". Valid variants: ${availableVariants.join(", ") || "none"}`,
     );
   }
 
@@ -43,9 +41,7 @@ export async function importVariantFromArgs(
   const [variantName, taskName, ...rest] = args;
 
   if (!variantName) {
-    throw new Error(
-      "Missing required argument <variantName>. Example: bun src/start-script.ts <variantName>",
-    );
+    throw new Error("Missing required argument <variantName>.");
   }
 
   if (!allowTaskName && taskName) {
@@ -55,9 +51,7 @@ export async function importVariantFromArgs(
   }
 
   if (requireTaskName && !taskName) {
-    throw new Error(
-      "Missing required argument <taskName>. Example: bun src/run-task.ts <variantName> <taskName>",
-    );
+    throw new Error("Missing required argument <taskName>.");
   }
 
   if (rest.length > 0) {

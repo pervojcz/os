@@ -65,7 +65,7 @@ function getLabels() {
 const tags = getTags();
 const labels = getLabels();
 
-const baseImage = metadata.baseImageName + ":" + metadata.baseImageVersion;
+const baseImage = `quay.io/fedora-ostree-desktops/${metadata.baseImageName}:${metadata.baseImageVersion}`;
 
 const containerfilePath = join(
   tmpdir(),
@@ -74,7 +74,7 @@ const containerfilePath = join(
 
 await writeFile(
   containerfilePath,
-  generateContainerfile(variantName, taskNames),
+  generateContainerfile(baseImage, variantName, taskNames),
   "utf8",
 );
 
@@ -82,8 +82,6 @@ try {
   await $`
     podman build \
       --file=${containerfilePath} \
-      --build-arg="VARIANT_NAME=${variantName}" \
-      --build-arg="BASE_IMAGE=${baseImage}" \
       ${tags.map((tag) => ["--tag", tag])} \
       ${labels.map((label) => ["--label", label])} \
       ${dir}

@@ -1,4 +1,5 @@
 export function generateContainerfile(
+  baseImage: string,
   variantName: string,
   taskNames: string[],
 ) {
@@ -13,8 +14,7 @@ RUN set -ouex pipefail; \\
     )
     .join("\n\n");
 
-  return `ARG BASE_IMAGE
-FROM quay.io/fedora-ostree-desktops/\${BASE_IMAGE}
+  return `FROM ${baseImage}
 
 COPY . ${scriptRoot}
 RUN set -ouex pipefail; \\
