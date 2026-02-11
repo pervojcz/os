@@ -1,6 +1,6 @@
 import { $ } from "bun";
 import { join } from "path";
-import { createVariant } from "~/utils/create-variant";
+import { createTask, createVariant } from "~/utils/create-variant";
 import { enableAutoUpdates } from "./scripts/auto-updates";
 import { installBun } from "./scripts/bun";
 import { downloadFonts } from "./scripts/fonts";
@@ -16,105 +16,107 @@ export default createVariant(
     baseImageVersion: "43",
     baseDirectory: __dirname,
   },
-  async (ctx) => {
-    await ctx.copyFiles(join(ctx.baseDirectory, "files"));
+  [
+    createTask("core", async (ctx) => {
+      await ctx.copyFiles(join(ctx.baseDirectory, "files"));
 
-    await ctx.installPackages(
-      `https://ftp.fi.muni.cz/pub/linux/rpmfusion/free/fedora/rpmfusion-free-release-${ctx.fedoraVersion}.noarch.rpm`,
-      `https://ftp.fi.muni.cz/pub/linux/rpmfusion/nonfree/fedora/rpmfusion-nonfree-release-${ctx.fedoraVersion}.noarch.rpm`,
-    );
+      await ctx.installPackages(
+        `https://ftp.fi.muni.cz/pub/linux/rpmfusion/free/fedora/rpmfusion-free-release-${ctx.fedoraVersion}.noarch.rpm`,
+        `https://ftp.fi.muni.cz/pub/linux/rpmfusion/nonfree/fedora/rpmfusion-nonfree-release-${ctx.fedoraVersion}.noarch.rpm`,
+      );
 
-    await ctx.addRepositoryFromUrl(
-      "https://download.docker.com/linux/fedora/docker-ce.repo",
-    );
+      await ctx.addRepositoryFromUrl(
+        "https://download.docker.com/linux/fedora/docker-ce.repo",
+      );
 
-    await ctx.installPackages(
-      // drivers
-      "intel-media-driver",
-      "mesa-vulkan-drivers",
+      await ctx.installPackages(
+        // drivers
+        "intel-media-driver",
+        "mesa-vulkan-drivers",
 
-      // codecs
-      "gstreamer1-plugin-openh264",
-      "gstreamer1-plugins-bad-free-extras",
-      "gstreamer1-plugins-bad-free-fluidsynth",
-      "gstreamer1-plugins-bad-free-wildmidi",
-      "gstreamer1-plugins-bad-free-zbar",
-      "gstreamer1-plugins-good-extras",
-      "gstreamer1-plugins-good-gtk",
-      "lame",
+        // codecs
+        "gstreamer1-plugin-openh264",
+        "gstreamer1-plugins-bad-free-extras",
+        "gstreamer1-plugins-bad-free-fluidsynth",
+        "gstreamer1-plugins-bad-free-wildmidi",
+        "gstreamer1-plugins-bad-free-zbar",
+        "gstreamer1-plugins-good-extras",
+        "gstreamer1-plugins-good-gtk",
+        "lame",
 
-      // misc packages
-      "grubby",
-      "langpacks-cs",
-      "gnome-tweaks",
-      "firewall-config",
-      "nautilus-python",
-      "steam-devices",
-      "twitter-twemoji-fonts",
-      "chkconfig",
+        // misc packages
+        "grubby",
+        "langpacks-cs",
+        "gnome-tweaks",
+        "firewall-config",
+        "nautilus-python",
+        "steam-devices",
+        "twitter-twemoji-fonts",
+        "chkconfig",
 
-      // Docker
-      "docker-ce",
-      "docker-ce-cli",
-      "containerd.io",
-      "docker-buildx-plugin",
-      "docker-compose-plugin",
+        // Docker
+        "docker-ce",
+        "docker-ce-cli",
+        "containerd.io",
+        "docker-buildx-plugin",
+        "docker-compose-plugin",
 
-      // Python
-      "python3",
-      "python3-pip",
-      "python3-virtualenv",
-      "python3-wheel",
-      "python3-devel",
-    );
+        // Python
+        "python3",
+        "python3-pip",
+        "python3-virtualenv",
+        "python3-wheel",
+        "python3-devel",
+      );
 
-    const rpms = await ctx.listFiles(
-      join(ctx.baseDirectory, "packages"),
-      (file) => file.endsWith(".rpm"),
-    );
-    await ctx.installPackages(...rpms);
+      const rpms = await ctx.listFiles(
+        join(ctx.baseDirectory, "packages"),
+        (file) => file.endsWith(".rpm"),
+      );
+      await ctx.installPackages(...rpms);
 
-    // install Bun
-    await installBun(ctx);
+      // install Bun
+      await installBun(ctx);
 
-    // install Node
-    await installNode(ctx);
+      // install Node
+      await installNode(ctx);
 
-    // install PNPM
-    await installPnpm(ctx);
+      // install PNPM
+      await installPnpm(ctx);
 
-    // install SBP
-    await installPrompt(ctx);
+      // install SBP
+      await installPrompt(ctx);
 
-    // install fonts
-    await downloadFonts(ctx);
+      // install fonts
+      await downloadFonts(ctx);
 
-    // overrides for GNOME
-    await ctx.createGschemaOverride(
-      "custom.gnome",
-      {
-        schema: "org.gnome.mutter",
-        overrides: {
-          "center-new-windows": "true",
+      // overrides for GNOME
+      await ctx.createGschemaOverride(
+        "custom.gnome",
+        {
+          schema: "org.gnome.mutter",
+          overrides: {
+            "center-new-windows": "true",
+          },
         },
-      },
-      {
-        schema: "org.gnome.desktop.interface",
-        overrides: {
-          "font-name": "'Geist 11'",
-          "document-font-name": "'Geist 11'",
-          "monospace-font-name": "'Geist Mono 10'",
+        {
+          schema: "org.gnome.desktop.interface",
+          overrides: {
+            "font-name": "'Geist 11'",
+            "document-font-name": "'Geist 11'",
+            "monospace-font-name": "'Geist Mono 10'",
+          },
         },
-      },
-    );
+      );
 
-    // enable services
-    await $`systemctl enable docker`;
+      // enable services
+      await $`systemctl enable docker`;
 
-    // enable auto-updates
-    await enableAutoUpdates();
+      // enable auto-updates
+      await enableAutoUpdates();
 
-    // remove GNOME Software plugin for Fedora upgrades
-    await $`rm /usr/lib64/gnome-software/plugins-*/libgs_plugin_fedora-pkgdb-collections.so`;
-  },
+      // remove GNOME Software plugin for Fedora upgrades
+      await $`rm /usr/lib64/gnome-software/plugins-*/libgs_plugin_fedora-pkgdb-collections.so`;
+    }),
+  ],
 );

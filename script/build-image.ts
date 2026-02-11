@@ -1,11 +1,14 @@
 import { $ } from "bun";
-import { exists } from "fs/promises";
+import { exists, unlink, writeFile } from "fs/promises";
+import { tmpdir } from "os";
 import { dirname, join } from "path";
+import { generateContainerfile } from "../src/utils/generate-containerfile";
 import { importVariantFromArgs } from "../src/utils/import-variant";
 
 const dir = dirname(__dirname);
 
-const { variantName, metadata } = await importVariantFromArgs();
+const { variantName, metadata, tasks } = await importVariantFromArgs();
+const taskNames = tasks.map((t) => t.name);
 const hasReadme = await exists(join(metadata.baseDirectory, "README.md"));
 
 const registryUser = process.env.REGISTRY_USER;
@@ -62,16 +65,30 @@ function getLabels() {
 const tags = getTags();
 const labels = getLabels();
 
-const baseImage = metadata.baseImageName + ":" + metadata.baseImageVersion;
+const baseImage = `quay.io/fedora-ostree-desktops/${metadata.baseImageName}:${metadata.baseImageVersion}`;
 
-await $`
-  podman build \
-    --build-arg="VARIANT_NAME=${variantName}" \
-    --build-arg="BASE_IMAGE=${baseImage}" \
-    ${tags.map((tag) => ["--tag", tag])} \
-    ${labels.map((label) => ["--label", label])} \
-    ${dir}
-`;
+const containerfilePath = join(
+  tmpdir(),
+  `os-containerfile-${variantName}-${Date.now()}`,
+);
+
+await writeFile(
+  containerfilePath,
+  generateContainerfile(baseImage, variantName, taskNames),
+  "utf8",
+);
+
+try {
+  await $`
+    podman build \
+      --file=${containerfilePath} \
+      ${tags.map((tag) => ["--tag", tag])} \
+      ${labels.map((label) => ["--label", label])} \
+      ${dir}
+  `;
+} finally {
+  await unlink(containerfilePath);
+}
 
 if (imageRegistry && registryUser && registryPassword) {
   await $`
