@@ -25,6 +25,10 @@ RUN set -ouex pipefail; \\
 
 ${taskBlocks}
 
+RUN set -ouex pipefail; \\
+    rm -rf ${scriptRoot}; \\
+    ostree container commit;
+
 ## NOTES:
 # - /var/lib/alternatives is required to prevent failure with some RPM installs
 # - All RUN commands must end with ostree container commit
