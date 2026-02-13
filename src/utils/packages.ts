@@ -5,7 +5,7 @@ export async function installPackages(...packages: string[]) {
   console.log("Installing packages:", ...packages);
 
   try {
-    await $`rpm-ostree install ${packages}`;
+    await $`rpm-ostree install -C ${packages}`;
   } catch (e) {
     const error = e as ShellError;
 
@@ -13,7 +13,7 @@ export async function installPackages(...packages: string[]) {
       "Failed to install packages:",
       error.message,
       "\n",
-      String.fromCharCode(...error.stderr)
+      String.fromCharCode(...error.stderr),
     );
 
     throw error;

@@ -16,6 +16,10 @@ RUN set -ouex pipefail; \\
 
   return `FROM ${baseImage}
 
+RUN set -ouex pipefail; \\
+    rpm-ostree refresh-md; \\
+    ostree container commit;
+
 COPY . ${scriptRoot}
 RUN set -ouex pipefail; \\
     chmod +x ${scriptRoot}/src/install-bun.sh; \\

@@ -31,6 +31,7 @@ export async function addRepositoryFromFile(
 ) {
   console.log("Installing repository:", fileName);
   await $`install -o 0 -g 0 -m644 ${filePath} ${`/etc/yum.repos.d/${fileName}`}`;
+  await $`rpm-ostree refresh-md`;
 }
 
 export async function addRepositoryFromCopr(
