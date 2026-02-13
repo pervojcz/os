@@ -1,8 +1,8 @@
 import { $ } from "bun";
 import { writeFile } from "fs/promises";
-import type { VariantCtx } from "~/utils/create-variant";
+import { createTaskGetter } from "~/utils/create-variant";
 
-export async function installBun(ctx: VariantCtx) {
+export const getBunTask = createTaskGetter(async (ctx) => {
   const bunxPath = "/usr/bin/bunx";
 
   await writeFile(
@@ -11,10 +11,10 @@ export async function installBun(ctx: VariantCtx) {
         #!/bin/sh
         exec bun x "$@"
       `),
-    "utf-8"
+    "utf-8",
   );
 
   await $`chmod +x ${bunxPath}`;
 
   await ctx.addToPath("bun-bin", "$HOME/.bun/bin");
-}
+});

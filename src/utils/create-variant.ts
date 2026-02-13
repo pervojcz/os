@@ -3,18 +3,19 @@ import { getVariantCtx } from "./get-variant-ctx";
 type PromiseOr<T> = T | Promise<T>;
 
 export type VariantCtx = Awaited<ReturnType<typeof getVariantCtx>>;
-export type VariantTaskCallback = (input: VariantCtx) => PromiseOr<void>;
+export type VariantTaskCallback = (ctx: VariantCtx) => PromiseOr<void>;
 
-export type VariantTask = {
-  name: string;
+export type VariantTask<N extends string> = {
+  name: N;
   callback: VariantTaskCallback;
 };
 
-type ResolvedVariantTask = VariantTask & {
+type ResolvedVariantTask<N extends string> = VariantTask<N> & {
   baseDirectory: string;
 };
 
-export type VariantMetadata = {
+export type VariantMetadata<N extends string> = {
+  name: N;
   baseImageName: string;
   baseImageVersion: string;
   baseDirectory: string;
@@ -22,7 +23,10 @@ export type VariantMetadata = {
   imageDescription?: string;
 };
 
-export function createTask(name: string, callback: VariantTaskCallback): VariantTask {
+export function createTask<N extends string>(
+  name: N,
+  callback: VariantTaskCallback,
+) {
   if (!name.trim()) {
     throw new Error("Task name must not be empty.");
   }
@@ -33,24 +37,48 @@ export function createTask(name: string, callback: VariantTaskCallback): Variant
     );
   }
 
-  return { name, callback };
+  return { name, callback } as VariantTask<N>;
 }
 
-export function createVariant(
-  metadata: VariantMetadata,
-  tasks: VariantTask[],
-  inheritedTasks: ResolvedVariantTask[] = []
+export function createTaskGetter<Args extends unknown[]>(
+  callback: (ctx: VariantCtx, ...args: Args) => PromiseOr<void>,
 ) {
-  const localTasks = tasks.map((task) => ({
-    ...task,
-    baseDirectory: metadata.baseDirectory,
-  }));
+  function getTask<N extends string>(
+    name: N,
+    ...args: Args
+  ) {
+    return createTask(name, (ctx) => callback(ctx, ...args));
+  }
 
-  const resolvedTasks = [...inheritedTasks, ...localTasks];
+  return getTask;
+}
+
+export function createVariant<
+  VariantName extends string,
+  TaskName extends string,
+  InheritedTaskName extends string = never,
+>(
+  metadata: VariantMetadata<VariantName>,
+  tasks: VariantTask<TaskName>[],
+  inheritedTasks: ResolvedVariantTask<InheritedTaskName>[] = [],
+) {
+  const localTasks = tasks.map((task) => {
+    type TaskName = typeof task.name;
+    return {
+      ...task,
+      baseDirectory: metadata.baseDirectory,
+    } as ResolvedVariantTask<TaskName>;
+  });
+
+  const resolvedTasks: ResolvedVariantTask<string>[] = [
+    ...inheritedTasks,
+    ...localTasks,
+  ];
+
   assertUniqueTaskNames(metadata, resolvedTasks);
   const ctxCache = new Map<string, VariantCtx>();
 
-  async function runTask(task: ResolvedVariantTask) {
+  async function runTask(task: ResolvedVariantTask<string>) {
     let ctx = ctxCache.get(task.baseDirectory);
 
     if (!ctx) {
@@ -71,7 +99,8 @@ export function createVariant(
     const task = resolvedTasks.find((entry) => entry.name === taskName);
 
     if (!task) {
-      const validTasks = resolvedTasks.map((entry) => entry.name).join(", ") || "none";
+      const validTasks =
+        resolvedTasks.map((entry) => entry.name).join(", ") || "none";
       throw new Error(
         `Unknown task \"${taskName}\" for variant \"${metadata.imageTitle}\". Valid tasks: ${validTasks}`,
       );
@@ -80,11 +109,29 @@ export function createVariant(
     await runTask(task);
   }
 
-  function extend(
-    extMetadata: Omit<VariantMetadata, "baseImageName" | "baseImageVersion">,
-    extTasks: VariantTask[]
+  function extend<ExtVariantName extends string, ExtTaskName extends string>(
+    extMetadata: Omit<
+      VariantMetadata<ExtVariantName>,
+      "baseImageName" | "baseImageVersion"
+    >,
+    omitedTasks: `${VariantName}.${TaskName}`[],
+    extTasks: VariantTask<ExtTaskName>[],
   ) {
-    return createVariant({ ...metadata, ...extMetadata }, extTasks, resolvedTasks);
+    return createVariant(
+      { ...metadata, ...extMetadata },
+      extTasks,
+      resolvedTasks
+        .map((task) => {
+          type TaskName = typeof task.name;
+          type NewTaskName = `${VariantName}.${TaskName}`;
+
+          return {
+            ...task,
+            name: `${metadata.name}.${task.name}`,
+          } as ResolvedVariantTask<NewTaskName>;
+        })
+        .filter((task) => !(omitedTasks as string[]).includes(task.name)),
+    );
   }
 
   return {
@@ -98,7 +145,10 @@ export function createVariant(
 
 export type Variant = ReturnType<typeof createVariant>;
 
-function assertUniqueTaskNames(metadata: VariantMetadata, tasks: ResolvedVariantTask[]) {
+function assertUniqueTaskNames(
+  metadata: VariantMetadata<string>,
+  tasks: ResolvedVariantTask<string>[],
+) {
   const duplicateNames = new Set<string>();
   const seen = new Set<string>();
 

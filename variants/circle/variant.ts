@@ -1,83 +1,36 @@
-import { $ } from "bun";
 import { join } from "path";
-import Core from "../_core/variant";
 import { createTask } from "~/utils/create-variant";
-import { installBitwarden } from "./scripts/bitwarden";
-import { installCursor } from "./scripts/cursor";
-import { installOpencode } from "./scripts/opencode";
-import { installVicinae } from "./scripts/vicinae";
+import Core from "../_core/variant";
+import { getBitwardenTask } from "./scripts/bitwarden";
+import { getBuildEssentialsTask } from "./scripts/build-essentials";
+import { getCursorTask } from "./scripts/cursor";
+import { getLogiopsTask } from "./scripts/logiops";
+import { getMiseTask } from "./scripts/mise";
+import { getOpencodeTask } from "./scripts/opencode";
+import { getVicinaeTask } from "./scripts/vicinae";
+import { getVirtualizationTask } from "./scripts/virtualization";
+import { getVscodeTask } from "./scripts/vscode";
 
 export default Core.extend(
   {
+    name: "circle",
     imageTitle: "Circle OS",
     imageDescription: "Personal OS image based on Fedora Silverblue",
     baseDirectory: __dirname,
   },
+  [],
   [
-    createTask("circle", async (ctx) => {
+    getBuildEssentialsTask("build-essentials"),
+    getVirtualizationTask("virtualization"),
+    getLogiopsTask("logiops"),
+    getOpencodeTask("opencode"),
+    getCursorTask("cursor"),
+    getVscodeTask("vscode"),
+    getVicinaeTask("vicinae"),
+    getBitwardenTask("bitwarden"),
+    getMiseTask("mise"),
+    createTask("files", async (ctx) => {
       await ctx.copyFiles(join(ctx.baseDirectory, "files"));
-
-      await ctx.addRepositoryFromString(
-        "firefoxpwa.repo",
-        `
-        [firefoxpwa]
-        name=FirefoxPWA
-        metadata_expire=300
-        baseurl=https://packagecloud.io/filips/FirefoxPWA/rpm_any/rpm_any/$basearch
-        gpgkey=https://packagecloud.io/filips/FirefoxPWA/gpgkey
-        repo_gpgcheck=1
-        gpgcheck=0
-        enabled=1
-      `,
-      );
-
-      await ctx.addRepositoryFromUrl(
-        "https://packages.microsoft.com/yumrepos/vscode/config.repo",
-      );
-
-      await ctx.addRepositoryFromCopr("jdxcode/mise");
-
-      await ctx.installPackages(
-        // drivers
-        "logiops",
-
-        // VS Code
-        "code",
-
-        // Tools
-        "mise",
-
-        // build essentials
-        "make",
-        "cmake",
-        "automake",
-        "gcc",
-        "gcc-c++",
-        "meson",
-        "ninja-build",
-        "pkg-config",
-
-        // Virtualization
-        "virt-install",
-        "libvirt-daemon-config-network",
-        "libvirt-daemon-kvm",
-        "qemu-kvm",
-      );
-
-      // install Cursor
-      await installCursor(ctx);
-
-      // install Opencode
-      await installOpencode(ctx);
-
-      // install Bitwarden
-      await installBitwarden(ctx);
-
-      // install Vicinae
-      await installVicinae(ctx);
-
-      // enable services
-      await $`systemctl enable logid`;
     }),
   ],
 );

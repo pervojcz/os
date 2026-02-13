@@ -1,8 +1,8 @@
 import { $ } from "bun";
 import { join } from "path";
-import type { VariantCtx } from "~/utils/create-variant";
+import { createTaskGetter } from "~/utils/create-variant";
 
-export async function installBitwarden(ctx: VariantCtx) {
+export const getBitwardenTask = createTaskGetter(async (ctx) => {
   const releases = await ctx.listReleases("bitwarden/clients");
   const desktopReleases = releases.filter((r) =>
     r.tag_name.startsWith("desktop-"),
@@ -36,9 +36,7 @@ export async function installBitwarden(ctx: VariantCtx) {
   await ctx.installPackages("libXScrnSaver");
 
   // install bitwarden cli
-  const cliReleases = releases.filter((r) =>
-    r.tag_name.startsWith("cli-v"),
-  );
+  const cliReleases = releases.filter((r) => r.tag_name.startsWith("cli-v"));
   const latestCli = cliReleases.at(0)?.tag_name;
   if (!latestCli) throw new Error("No Bitwarden CLI release found");
 
@@ -57,4 +55,4 @@ export async function installBitwarden(ctx: VariantCtx) {
   await ctx.downloadFile(cliZip.url, cliZipFile);
   await $`unzip ${cliZipFile} -d ${cliTempDir}`.quiet();
   await $`install -Dm755 ${join(cliTempDir, "bw")} /usr/bin/bw`;
-}
+});

@@ -1,7 +1,7 @@
 import { $ } from "bun";
-import type { VariantCtx } from "~/utils/create-variant";
+import { createTaskGetter } from "~/utils/create-variant";
 
-export async function installOpencode(ctx: VariantCtx) {
+export const getOpencodeTask = createTaskGetter(async (ctx) => {
   const assets = await ctx.getReleaseAssets("anomalyco/opencode");
 
   const desktopAsset = assets.find(
@@ -19,4 +19,4 @@ export async function installOpencode(ctx: VariantCtx) {
   await $`ln -s /usr/share/opencode/opencode-cli /usr/bin/oc`;
 
   await $`sed -i 's|^Exec=OpenCode|Exec=env OC_ALLOW_WAYLAND=1 /usr/share/opencode/OpenCode|g' /usr/share/applications/OpenCode.desktop`;
-}
+});

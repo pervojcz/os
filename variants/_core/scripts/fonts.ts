@@ -1,10 +1,10 @@
 import { $ } from "bun";
 import { join } from "path";
-import type { VariantCtx } from "~/utils/create-variant";
+import { createTaskGetter, type VariantCtx } from "~/utils/create-variant";
 
 const fonts = "/usr/share/fonts";
 
-export async function downloadFonts(ctx: VariantCtx) {
+export const getFontsTask = createTaskGetter(async (ctx) => {
   await $`mkdir -p ${fonts}`;
 
   await Promise.all([
@@ -14,7 +14,7 @@ export async function downloadFonts(ctx: VariantCtx) {
   ]);
 
   await $`fc-cache -v`;
-}
+});
 
 async function downloadGeist(ctx: VariantCtx) {
   const assets = await ctx.getReleaseAssets("vercel/geist-font");

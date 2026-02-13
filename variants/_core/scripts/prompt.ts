@@ -1,6 +1,6 @@
-import type { VariantCtx } from "~/utils/create-variant";
+import { createTaskGetter } from "~/utils/create-variant";
 
-export async function installPrompt(ctx: VariantCtx) {
+export const getPromptTask = createTaskGetter(async (ctx) => {
   const sbpPath = "/usr/share/sbp";
   await ctx.cloneGitRepo("https://github.com/brujoand/sbp.git", sbpPath);
   await ctx.createProfileScript(
@@ -8,6 +8,6 @@ export async function installPrompt(ctx: VariantCtx) {
     `
       export SBP_PATH=${sbpPath}
       source \$SBP_PATH/sbp.bash
-    `
+    `,
   );
-}
+});

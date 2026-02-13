@@ -1,6 +1,6 @@
-import type { VariantCtx } from "~/utils/create-variant";
+import { createTaskGetter } from "~/utils/create-variant";
 
-export async function installCursor(ctx: VariantCtx) {
+export const getCursorTask = createTaskGetter(async (ctx) => {
   await ctx.addRepositoryFromString(
     "cursor.repo",
     `
@@ -15,4 +15,4 @@ export async function installCursor(ctx: VariantCtx) {
   );
 
   await ctx.installPackages("cursor");
-}
+});

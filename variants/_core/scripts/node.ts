@@ -1,9 +1,9 @@
 import { $ } from "bun";
 import { mkdir, readdir, writeFile } from "fs/promises";
 import { join } from "path";
-import type { VariantCtx } from "~/utils/create-variant";
+import { createTaskGetter } from "~/utils/create-variant";
 
-export async function installNode(ctx: VariantCtx) {
+export const getNodeTask = createTaskGetter(async (ctx) => {
   const nodePath = "/usr/share/node";
 
   type Res = { date: string; version: string }[];
@@ -26,7 +26,7 @@ export async function installNode(ctx: VariantCtx) {
     `
       export NODEJS_HOME="${nodePath}"
       export NODE_COMPILE_CACHE="$HOME/.cache/nodejs-compile-cache"
-    `
+    `,
   );
   await ctx.addToPath("node-bin", "$NODEJS_HOME/bin");
 
@@ -37,8 +37,8 @@ export async function installNode(ctx: VariantCtx) {
   await ctx.addToPath(
     "npm-pkg",
     ["NPM_HOME", "$HOME/.npm-pkg"],
-    ["NPM_HOME_BIN", "$NPM_HOME/bin"]
+    ["NPM_HOME_BIN", "$NPM_HOME/bin"],
   );
   await mkdir(nodeEtcPath, { recursive: true });
   await writeFile(npmrcPath, "prefix=${NPM_HOME}", "utf-8");
-}
+});
