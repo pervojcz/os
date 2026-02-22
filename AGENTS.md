@@ -152,6 +152,7 @@ ISO upload-related:
 ## Commit Guidance
 - Keep commits focused and atomic.
 - Commit messages should explain why, not only what.
+- Match recent repository commit message style (prefixes, tense, and scope).
 - Never commit secrets or environment-specific credentials.
 - Do not amend commits unless explicitly requested.
 

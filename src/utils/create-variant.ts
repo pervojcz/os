@@ -53,6 +53,17 @@ export function createTaskGetter<Args extends unknown[]>(
   return getTask;
 }
 
+export function mergeTasks<N extends string>(
+  name: N,
+  tasks: readonly VariantTask<string>[],
+) {
+  return createTask(name, async (ctx) => {
+    for (const task of tasks) {
+      await task.callback(ctx);
+    }
+  });
+}
+
 export function createVariant<
   VariantName extends string,
   TaskName extends string,

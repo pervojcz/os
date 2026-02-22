@@ -1,5 +1,5 @@
 import { join } from "path";
-import { createTask, createVariant } from "~/utils/create-variant";
+import { createTask, createVariant, mergeTasks } from "~/utils/create-variant";
 import { getAutoUpdatesTask } from "./scripts/auto-updates";
 import { getBunTask } from "./scripts/bun";
 import { getCodecsTask } from "./scripts/codecs";
@@ -24,23 +24,30 @@ export default createVariant(
     baseDirectory: __dirname,
   },
   [
-    getRpmfusionTask("rpmfusion"),
-    getDriversTask("drivers"),
-    getCodecsTask("codecs"),
-    getPythonTask("python"),
-    getMiscPackagesTask("misc-packages"),
+    mergeTasks("media-packages", [
+      getRpmfusionTask("rpmfusion"),
+      getDriversTask("drivers"),
+      getCodecsTask("codecs"),
+    ]),
+    mergeTasks("system-packages", [
+      getPythonTask("python"),
+      getMiscPackagesTask("misc-packages"),
+    ]),
     getDockerTask("docker"),
-    getBunTask("bun"),
-    getNodeTask("node"),
-    getPnpmTask("pnpm"),
+    mergeTasks("js-tooling", [
+      getBunTask("bun"),
+      getNodeTask("node"),
+      getPnpmTask("pnpm"),
+    ]),
     getPromptTask("prompt"),
-    getFontsTask("fonts"),
-    getGnomeOverridesTask("gnome-overrides"),
+    mergeTasks("desktop-overrides", [
+      getFontsTask("fonts"),
+      getGnomeOverridesTask("gnome-overrides"),
+    ]),
     getAutoUpdatesTask("auto-updates"),
-    createTask("files", async (ctx) => {
+    createTask("local-assets", async (ctx) => {
       await ctx.copyFiles(join(ctx.baseDirectory, "files"));
-    }),
-    createTask("packages-from-files", async (ctx) => {
+
       const rpms = await ctx.listFiles(
         join(ctx.baseDirectory, "packages"),
         (file) => file.endsWith(".rpm"),

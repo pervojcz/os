@@ -1,5 +1,5 @@
 import { join } from "path";
-import { createTask } from "~/utils/create-variant";
+import { createTask, mergeTasks } from "~/utils/create-variant";
 import Core from "../_core/variant";
 import { getBitwardenTask } from "./scripts/bitwarden";
 import { getBuildEssentialsTask } from "./scripts/build-essentials";
@@ -20,15 +20,21 @@ export default Core.extend(
   },
   [],
   [
-    getBuildEssentialsTask("build-essentials"),
-    getVirtualizationTask("virtualization"),
+    mergeTasks("dev-environment", [
+      getBuildEssentialsTask("build-essentials"),
+      getVirtualizationTask("virtualization"),
+      getMiseTask("mise"),
+    ]),
     getLogiopsTask("logiops"),
-    getOpencodeTask("opencode"),
-    getCursorTask("cursor"),
-    getVscodeTask("vscode"),
-    getVicinaeTask("vicinae"),
-    getBitwardenTask("bitwarden"),
-    getMiseTask("mise"),
+    mergeTasks("code-editors", [
+      getOpencodeTask("opencode"),
+      getCursorTask("cursor"),
+      getVscodeTask("vscode"),
+    ]),
+    mergeTasks("desktop-apps", [
+      getVicinaeTask("vicinae"),
+      getBitwardenTask("bitwarden"),
+    ]),
     createTask("files", async (ctx) => {
       await ctx.copyFiles(join(ctx.baseDirectory, "files"));
     }),
