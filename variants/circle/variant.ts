@@ -6,6 +6,7 @@ import { getBuildEssentialsTask } from "./scripts/build-essentials";
 import { getCursorTask } from "./scripts/cursor";
 import { getLogiopsTask } from "./scripts/logiops";
 import { getMiseTask } from "./scripts/mise";
+import { getNiriTask } from "./scripts/niri";
 import { getOpencodeTask } from "./scripts/opencode";
 import { getVicinaeTask } from "./scripts/vicinae";
 import { getVirtualizationTask } from "./scripts/virtualization";
@@ -35,6 +36,7 @@ export default Core.extend(
       getVicinaeTask("vicinae"),
       getBitwardenTask("bitwarden"),
     ]),
+    getNiriTask("niri"),
     createTask("files", async (ctx) => {
       await ctx.copyFiles(join(ctx.baseDirectory, "files"));
     }),
