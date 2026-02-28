@@ -1,7 +1,10 @@
 import { createTaskGetter } from "~/utils/create-variant";
 
 export const getCodecsTask = createTaskGetter(async (ctx) => {
+  await ctx.uninstallPackages("ffmpeg-free");
+
   await ctx.installPackages(
+    "ffmpeg",
     "gstreamer1-plugin-openh264",
     "gstreamer1-plugins-bad-free-extras",
     "gstreamer1-plugins-bad-free-fluidsynth",
