@@ -1,7 +1,16 @@
 import { createTaskGetter } from "~/utils/create-variant";
 
 export const getCodecsTask = createTaskGetter(async (ctx) => {
-  await ctx.uninstallPackages("ffmpeg-free", "libavcodec-free");
+  await ctx.uninstallPackages(
+    "ffmpeg-free",
+    "libavcodec-free",
+    "libavfilter-free",
+    "libavformat-free",
+    "libavutil-free",
+    "libpostproc-free",
+    "libswresample-free",
+    "libswscale-free",
+  );
 
   await ctx.installPackages(
     "ffmpeg",
