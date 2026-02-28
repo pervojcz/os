@@ -25,3 +25,17 @@ export async function uninstallPackages(...packages: string[]) {
   console.log("Uninstalling packages:", ...packages);
   await $`rpm-ostree uninstall ${packages}`;
 }
+
+export async function replacePackages(
+  remove: string[],
+  install: string[],
+) {
+  if (!remove.length || !install.length) {
+    await uninstallPackages(...remove);
+    await installPackages(...install);
+    return;
+  }
+
+  console.log("Replacing packages:", ...remove, "->", ...install);
+  await $`rpm-ostree override remove ${remove} --install ${install}`;
+}

@@ -11,7 +11,7 @@ import { createProfileScript } from "./create-profile-script";
 import { downloadFile } from "./download-file";
 import { getReleaseAssets, listReleases } from "./github-releases";
 import { listFiles } from "./list-files";
-import { installPackages, uninstallPackages } from "./packages";
+import { installPackages, replacePackages, uninstallPackages } from "./packages";
 import {
   addRepositoryFromFile,
   addRepositoryFromString,
@@ -48,6 +48,7 @@ export async function getVariantCtx(baseDirectory: string) {
     getTempDir,
     installPackages,
     listFiles,
+    replacePackages,
     trimLines,
     uninstallPackages,
   };
