@@ -26,6 +26,10 @@ RUN set -ouex pipefail; \\
 ${taskBlocks}
 
 RUN set -ouex pipefail; \\
+    ${scriptRoot}/src/patch-rpmfusion-repos.sh; \\
+    ostree container commit;
+
+RUN set -ouex pipefail; \\
     rm -rf ${scriptRoot}; \\
     ostree container commit;
 
