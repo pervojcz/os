@@ -5,6 +5,21 @@ import { downloadFile, type Url } from "./download-file";
 import { getTempDir } from "./temp";
 import { trimLines } from "./trim-lines";
 
+/** Comment RPM Fusion `metalink=` and enable the shipped `baseurl` (fixes empty metalink in CI). */
+export async function preferRpmfusionBaseurlOverMetalink() {
+  console.log("RPM Fusion: preferring baseurl over metalink (reliable in CI).");
+  const script = `set -euo pipefail
+for f in /etc/yum.repos.d/rpmfusion-*.repo; do
+  [ -e "$f" ] || continue
+  sed -i \
+    -e 's/^metalink=/#metalink=/' \
+    -e 's|^#baseurl=http://download1.rpmfusion.org/|baseurl=https://download1.rpmfusion.org/|' \
+    "$f"
+done
+`;
+  await $`bash -c ${script}`;
+}
+
 export async function addRepositoryFromUrl(url: `${Url}.repo`) {
   const fileName = url.split("/").reverse().shift()!;
   const outputPath = join(getTempDir("repo", fileName), fileName);
