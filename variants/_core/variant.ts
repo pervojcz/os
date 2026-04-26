@@ -20,7 +20,7 @@ export default createVariant(
     imageTitle: "Core Image OS",
     imageDescription: "Core Image OS based on Fedora Silverblue",
     baseImageName: "silverblue",
-    baseImageVersion: "44",
+    baseImageVersion: "43",
     baseDirectory: __dirname,
   },
   [

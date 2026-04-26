@@ -1,19 +1,9 @@
 import { $ } from "bun";
 import { writeFile } from "fs/promises";
-import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { downloadFile, type Url } from "./download-file";
 import { getTempDir } from "./temp";
 import { trimLines } from "./trim-lines";
-
-const patchRpmfusionReposSh = fileURLToPath(
-  new URL("../patch-rpmfusion-repos.sh", import.meta.url),
-);
-
-/** See `src/patch-rpmfusion-repos.sh` */
-export async function preferRpmfusionBaseurlOverMetalink() {
-  await $`bash ${patchRpmfusionReposSh}`;
-}
 
 export async function addRepositoryFromUrl(url: `${Url}.repo`) {
   const fileName = url.split("/").reverse().shift()!;
