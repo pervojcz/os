@@ -1,14 +1,19 @@
 import { $ } from "bun";
 import { writeFile } from "fs/promises";
+import { join } from "path";
 import { createTaskGetter } from "~/utils/create-variant";
 
 export const getPnpmTask = createTaskGetter(async (ctx) => {
   const pnpmPath = "/usr/share/pnpm";
 
+  await $`mkdir -p ${pnpmPath}`;
+
+  const archivePath = join(ctx.getTempDir("pnpm", "archive"), "pnpm.tar.gz");
   await ctx.downloadFile(
-    "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linux-x64",
-    `${pnpmPath}/pnpm`,
+    "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linux-x64.tar.gz",
+    archivePath,
   );
+  await $`tar -xzf ${archivePath} -C ${pnpmPath} pnpm`;
 
   await writeFile(
     `${pnpmPath}/pnpx`,
