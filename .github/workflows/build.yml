@@ -16,8 +16,6 @@ on:
 
 env:
   IMAGE_DESC: "Personal OS image based on Fedora Silverblue"
-  REGISTRY_USER: "${{ github.actor }}"
-  REGISTRY_PASSWORD: "${{ github.token }}"
   IMAGE_NAME: "${{ github.event.repository.name }}"
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
   GH_REPO: "${{ github.repository }}"
@@ -47,8 +45,6 @@ jobs:
   build_push:
     name: Build and push image
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    env:
-      PODMAN_BUILD_ARGS: "--cgroup-manager=cgroupfs --runtime=runc"
 
     permissions:
       contents: read
@@ -61,11 +57,48 @@ jobs:
         variant: ${{ fromJson(needs.variants.outputs.variants) }}
 
     steps:
-      - name: Checkout Push to Registry action
+      - name: Checkout
         uses: actions/checkout@v7
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Generate Containerfile
+        id: generate
+        run: |
+          output=$(bun script/generate-containerfile.ts ${{ matrix.variant }})
+          containerfile=$(echo "$output" | jq -r '.containerfile')
+          echo "containerfile=$containerfile" >> $GITHUB_OUTPUT
+
+          tags=$(echo "$output" | jq -r '.tags | join("\n")')
+          {
+            echo "tags<<EOF"
+            echo "$tags"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          labels=$(echo "$output" | jq -r '.labels | join("\n")')
+          {
+            echo "labels<<EOF"
+            echo "$labels"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Builder
+        uses: useblacksmith/setup-docker-builder@v1
+
+      - name: Log in to container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
       - name: Build and push image
-        run: bun script/build-image.ts ${{ matrix.variant }}
+        uses: useblacksmith/build-push-action@v2
+        with:
+          context: .
+          file: ${{ steps.generate.outputs.containerfile }}
+          push: true
+          tags: ${{ steps.generate.outputs.tags }}
+          labels: ${{ steps.generate.outputs.labels }}
