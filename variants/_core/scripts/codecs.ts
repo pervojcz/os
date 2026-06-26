@@ -9,7 +9,6 @@ export const getCodecsTask = createTaskGetter(async (ctx) => {
       "libavfilter-free",
       "libavformat-free",
       "libavutil-free",
-      "libpostproc-free",
       "libswresample-free",
       "libswscale-free",
     ],
