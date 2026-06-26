@@ -39,7 +39,7 @@ This repository uses direct Bun/TS commands (not package scripts).
 ### Build Commands
 - List variants: `bun script/list-variants.ts`
 - Resolve base image metadata: `bun script/get-base-image.ts <variant>`
-- Build (and optionally push) image: `bun script/build-image.ts <variant>`
+- Generate Containerfile for CI: `bun script/generate-containerfile.ts <variant>`
 - Run variant logic directly: `bun src/start-script.ts <variant>`
 
 ### Lint / Format / Typecheck
@@ -61,7 +61,7 @@ This repository uses direct Bun/TS commands (not package scripts).
 ## CI Behavior Summary
 - `build.yml`
   - computes variant matrix via `script/list-variants.ts`
-  - runs `bun script/build-image.ts <variant>` for each variant
+  - generates Containerfile via `script/generate-containerfile.ts`, then builds with Blacksmith Docker actions
 - `iso.yml`
   - installs dependencies with `bun install`
   - gets base image via `script/get-base-image.ts`
@@ -147,7 +147,7 @@ ISO upload-related:
 - `bunx tsc --noEmit` (for TS changes)
 - `bun script/list-variants.ts` (variant discovery changes)
 - `bun script/get-base-image.ts <variant>` (variant metadata changes)
-- `bun script/build-image.ts <variant>` (build-path changes)
+- `bun script/generate-containerfile.ts <variant>` (build-path changes)
 
 ## Commit Guidance
 - Keep commits focused and atomic.
