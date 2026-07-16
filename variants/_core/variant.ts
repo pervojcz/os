@@ -19,8 +19,8 @@ export default createVariant(
     name: "core",
     imageTitle: "Core Image OS",
     imageDescription: "Core Image OS based on Fedora Silverblue",
-    baseImageName: "silverblue",
-    baseImageVersion: "44",
+    baseImage: "ghcr.io/ublue-os/silverblue-nvidia:44",
+    baseImageVariant: "silverblue",
     baseDirectory: __dirname,
   },
   [

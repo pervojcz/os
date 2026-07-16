@@ -64,9 +64,11 @@ jobs:
           output=$(bun script/get-base-image.ts ${{ matrix.variant }})
           name=$(echo $output | jq -r ".name")
           version=$(echo $output | jq -r ".version")
+          variant=$(echo $output | jq -r ".variant")
 
           echo "name=$name" >> $GITHUB_OUTPUT
           echo "version=$version" >> $GITHUB_OUTPUT
+          echo "variant=$variant" >> $GITHUB_OUTPUT
 
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
@@ -77,7 +79,7 @@ jobs:
           image_name: "${{ env.IMAGE_FULL_NAME }}"
           image_repo: "${{ env.IMAGE_REGISTRY }}"
           image_tag: "${{ steps.generate-tag.outputs.tag }}"
-          variant: "${{ steps.base-image.outputs.name }}"
+          variant: "${{ steps.base-image.outputs.variant }}"
           version: "${{ steps.base-image.outputs.version }}"
           iso_name: "${{ env.IMAGE_FULL_NAME }}-${{ steps.generate-tag.outputs.tag }}-${{ steps.base-image.outputs.version }}.iso"
 

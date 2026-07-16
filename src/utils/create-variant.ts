@@ -16,8 +16,8 @@ type ResolvedVariantTask<N extends string> = VariantTask<N> & {
 
 export type VariantMetadata<N extends string> = {
   name: N;
-  baseImageName: string;
-  baseImageVersion: string;
+  baseImage: `${string}:${string}`;
+  baseImageVariant: string;
   baseDirectory: string;
   imageTitle: string;
   imageDescription?: string;
@@ -43,10 +43,7 @@ export function createTask<N extends string>(
 export function createTaskGetter<Args extends unknown[]>(
   callback: (ctx: VariantCtx, ...args: Args) => PromiseOr<void>,
 ) {
-  function getTask<N extends string>(
-    name: N,
-    ...args: Args
-  ) {
+  function getTask<N extends string>(name: N, ...args: Args) {
     return createTask(name, (ctx) => callback(ctx, ...args));
   }
 
@@ -123,7 +120,7 @@ export function createVariant<
   function extend<ExtVariantName extends string, ExtTaskName extends string>(
     extMetadata: Omit<
       VariantMetadata<ExtVariantName>,
-      "baseImageName" | "baseImageVersion"
+      "baseImage" | "baseImageVariant"
     >,
     omitedTasks: `${VariantName}.${TaskName}`[],
     extTasks: VariantTask<ExtTaskName>[],

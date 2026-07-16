@@ -62,15 +62,13 @@ function getRegistryTags(localTags: string[]) {
   return localTags.map((tag) => `${imageRegistry}/${tag}`);
 }
 
-const baseImage = `quay.io/fedora-ostree-desktops/${metadata.baseImageName}:${metadata.baseImageVersion}`;
-
 const containerfileRel = join(".generated", variantName, "Containerfile");
 const containerfilePath = join(repoRoot, containerfileRel);
 
 await mkdir(dirname(containerfilePath), { recursive: true });
 await writeFile(
   containerfilePath,
-  generateContainerfile(baseImage, variantName, taskNames),
+  generateContainerfile(metadata.baseImage, variantName, taskNames),
   "utf8",
 );
 
