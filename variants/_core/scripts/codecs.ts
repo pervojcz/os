@@ -10,11 +10,13 @@ export const getCodecsTask = createTaskGetter(async (ctx) => {
 
   await ctx.replacePackages(
     [
+      "fdk-aac-free",
       "ffmpeg-free",
       "libavcodec-free",
       "libavdevice-free",
       "libavfilter-free",
       "libavformat-free",
+      "libpostproc-free",
       "libavutil-free",
       "libswresample-free",
       "libswscale-free",
