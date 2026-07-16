@@ -1,5 +1,10 @@
 import { $, type ShellError } from "bun";
 
+export async function isPackageInstalled(packageName: string) {
+  const result = await $`rpm -q ${packageName}`.nothrow();
+  return result.exitCode === 0;
+}
+
 export async function installPackages(...packages: string[]) {
   if (!packages.length) return;
   console.log("Installing packages:", ...packages);
