@@ -4,7 +4,6 @@ import { getAutoUpdatesTask } from "./scripts/auto-updates";
 import { getBunTask } from "./scripts/bun";
 import { getCodecsTask } from "./scripts/codecs";
 import { getDockerTask } from "./scripts/docker";
-import { getDriversTask } from "./scripts/drivers";
 import { getFontsTask } from "./scripts/fonts";
 import { getGnomeOverridesTask } from "./scripts/gnome-overrides";
 import { getMiscPackagesTask } from "./scripts/misc-packages";
@@ -26,7 +25,6 @@ export default createVariant(
   [
     mergeTasks("media-packages", [
       getRpmfusionTask("rpmfusion"),
-      getDriversTask("drivers"),
       getCodecsTask("codecs"),
     ]),
     mergeTasks("system-packages", [
