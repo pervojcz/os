@@ -8,30 +8,19 @@ export const getCodecsTask = createTaskGetter(async (ctx) => {
     ["intel-media-driver"],
   );
 
-  await ctx.replacePackages(
-    [
-      "fdk-aac-free",
-      "ffmpeg-free",
-      "libavcodec-free",
-      "libavdevice-free",
-      "libavfilter-free",
-      "libavformat-free",
-      "libpostproc-free",
-      "libavutil-free",
-      "libswresample-free",
-      "libswscale-free",
-    ],
-    ["ffmpeg"],
-  );
-
   await ctx.installPackages(
+    "gstreamer1-plugin-libav",
     "gstreamer1-plugin-openh264",
     "gstreamer1-plugins-bad-free-extras",
+    "gstreamer1-plugins-bad-freeworld",
     "gstreamer1-plugins-bad-free-fluidsynth",
     "gstreamer1-plugins-bad-free-wildmidi",
     "gstreamer1-plugins-bad-free-zbar",
     "gstreamer1-plugins-good-extras",
     "gstreamer1-plugins-good-gtk",
+    "gstreamer1-plugins-ugly",
+    "gstreamer1-vaapi",
+    "libva-nvidia-driver",
     "lame",
   );
 });
