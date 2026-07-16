@@ -83,11 +83,12 @@ export type MatchingBasePackage = {
 export async function installPackagesMatchingBase(
   specs: MatchingBasePackage[],
 ) {
+  const arch = (await $`uname -m`.text()).trim();
   const urls: string[] = [];
 
   for (const { package: packageName, reference } of specs) {
-    const [version, release, arch] = (
-      await $`rpm -q ${reference} --qf '%{VERSION} %{RELEASE} %{ARCH}'`.text()
+    const [version, release] = (
+      await $`rpm -q ${reference}.${arch} --qf '%{VERSION} %{RELEASE}'`.text()
     )
       .trim()
       .split(/\s+/);
