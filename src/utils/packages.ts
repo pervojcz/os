@@ -62,6 +62,45 @@ export async function uninstallPackages(...packages: string[]) {
   await $`rpm-ostree uninstall ${packages}`;
 }
 
+function getKojiSourceName(packageName: string) {
+  switch (packageName) {
+    case "glibc-devel":
+      return "glibc";
+    case "gcc-c++":
+      return "gcc";
+    case "libstdc++-devel":
+      return "libstdc++";
+    default:
+      return packageName;
+  }
+}
+
+export type MatchingBasePackage = {
+  package: string;
+  reference: string;
+};
+
+export async function installPackagesMatchingBase(
+  specs: MatchingBasePackage[],
+) {
+  const urls: string[] = [];
+
+  for (const { package: packageName, reference } of specs) {
+    const [version, release, arch] = (
+      await $`rpm -q ${reference} --qf '%{VERSION} %{RELEASE} %{ARCH}'`.text()
+    )
+      .trim()
+      .split(/\s+/);
+
+    const sourceName = getKojiSourceName(packageName);
+    urls.push(
+      `https://kojipkgs.fedoraproject.org/packages/${sourceName}/${version}/${release}/${arch}/${packageName}-${version}-${release}.${arch}.rpm`,
+    );
+  }
+
+  await installPackages(...urls);
+}
+
 export async function replacePackages(
   remove: string[],
   install: string[],

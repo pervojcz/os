@@ -11,12 +11,12 @@ export const getBuildEssentialsTask = createTaskGetter(async (ctx) => {
   );
 
   if (!(await ctx.isPackageInstalled("gcc"))) {
-    // NVIDIA images ship multilib i686 packages; pin compilers to x86_64 and
-    // resolve them from archive repos that match the pinned ostree base.
-    await ctx.installPackages(
-      "gcc.x86_64",
-      "gcc-c++.x86_64",
-      { repos: ["updates-archive", "fedora"] },
-    );
+    // NVIDIA images pin older glibc/cpp versions that no longer match live
+    // repos, so install toolchain RPMs that match the base image via Koji.
+    await ctx.installPackagesMatchingBase([
+      { package: "glibc-devel", reference: "glibc" },
+      { package: "gcc", reference: "cpp" },
+      { package: "gcc-c++", reference: "cpp" },
+    ]);
   }
 });

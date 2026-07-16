@@ -13,6 +13,7 @@ import { getReleaseAssets, listReleases } from "./github-releases";
 import { listFiles } from "./list-files";
 import {
   installPackages,
+  installPackagesMatchingBase,
   isPackageInstalled,
   replacePackages,
   uninstallPackages,
@@ -52,6 +53,7 @@ export async function getVariantCtx(baseDirectory: string) {
     getReleaseAssets,
     getTempDir,
     installPackages,
+    installPackagesMatchingBase,
     isPackageInstalled,
     listFiles,
     replacePackages,
