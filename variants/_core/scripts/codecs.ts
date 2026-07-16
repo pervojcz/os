@@ -1,6 +1,13 @@
 import { createTaskGetter } from "~/utils/create-variant";
 
 export const getCodecsTask = createTaskGetter(async (ctx) => {
+  // RPM Fusion's Intel VA package conflicts with Fedora's split package on F44+.
+  // Swapping it first keeps the nonfree repo enabled and makes later codec layering resolvable.
+  await ctx.replacePackages(
+    ["libva-intel-media-driver"],
+    ["intel-media-driver"],
+  );
+
   await ctx.replacePackages(
     [
       "ffmpeg-free",
