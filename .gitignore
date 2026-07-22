@@ -176,3 +176,6 @@ dist
 
 # Generated Containerfiles for CI builds
 .generated/
+
+# Cosign private keys
+cosign.key
