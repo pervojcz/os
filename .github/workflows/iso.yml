@@ -29,6 +29,10 @@ jobs:
     name: Generate an ISO image
     runs-on: blacksmith-4vcpu-ubuntu-2404
 
+    permissions:
+      contents: read
+      packages: read
+
     needs: variants
     strategy:
       matrix:
@@ -81,6 +85,13 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "variant=$variant" >> $GITHUB_OUTPUT
 
+      - name: Log in to container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
         with:
@@ -92,6 +103,15 @@ jobs:
           cosign verify --key cosign.pub \
             "${{ steps.refs.outputs.image_registry }}/${{ steps.refs.outputs.image_full_name }}:${{ steps.generate-tag.outputs.tag }}"
 
+      - name: Prefetch image for installer
+        id: prefetch
+        run: |
+          set -euo pipefail
+          ref="${{ steps.refs.outputs.image_registry }}/${{ steps.refs.outputs.image_full_name }}:${{ steps.generate-tag.outputs.tag }}"
+          docker pull "$ref"
+          docker save -o "${GITHUB_WORKSPACE}/iso-image.tar" "$ref"
+          echo "image_src=docker-archive:/github/workspace/iso-image.tar" >> "$GITHUB_OUTPUT"
+
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
         id: iso-build
@@ -99,6 +119,7 @@ jobs:
           image_name: "${{ steps.refs.outputs.image_full_name }}"
           image_repo: "${{ steps.refs.outputs.image_registry }}"
           image_tag: "${{ steps.generate-tag.outputs.tag }}"
+          image_src: "${{ steps.prefetch.outputs.image_src }}"
           image_signed: "true"
           variant: "${{ steps.base-image.outputs.variant }}"
           version: "${{ steps.base-image.outputs.version }}"
