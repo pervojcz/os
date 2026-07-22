@@ -47,6 +47,17 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Normalize image refs
+        id: refs
+        run: |
+          set -euo pipefail
+          image_name="${IMAGE_NAME,,}"
+          image_registry="${IMAGE_REGISTRY,,}"
+          image_full_name="${image_name}-${{ matrix.variant }}"
+          echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
+          echo "image_registry=$image_registry" >> "$GITHUB_OUTPUT"
+          echo "image_full_name=$image_full_name" >> "$GITHUB_OUTPUT"
+
       - name: Generate tag
         id: generate-tag
         run: |
@@ -70,18 +81,28 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "variant=$variant" >> $GITHUB_OUTPUT
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v2.6.3
+
+      - name: Verify image signature
+        run: |
+          set -euo pipefail
+          cosign verify --key cosign.pub \
+            "${{ steps.refs.outputs.image_registry }}/${{ steps.refs.outputs.image_full_name }}:${{ steps.generate-tag.outputs.tag }}"
+
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
         id: iso-build
-        env:
-          IMAGE_FULL_NAME: "${{ env.IMAGE_NAME }}-${{ matrix.variant }}"
         with:
-          image_name: "${{ env.IMAGE_FULL_NAME }}"
-          image_repo: "${{ env.IMAGE_REGISTRY }}"
+          image_name: "${{ steps.refs.outputs.image_full_name }}"
+          image_repo: "${{ steps.refs.outputs.image_registry }}"
           image_tag: "${{ steps.generate-tag.outputs.tag }}"
+          image_signed: "true"
           variant: "${{ steps.base-image.outputs.variant }}"
           version: "${{ steps.base-image.outputs.version }}"
-          iso_name: "${{ env.IMAGE_FULL_NAME }}-${{ steps.generate-tag.outputs.tag }}-${{ steps.base-image.outputs.version }}.iso"
+          iso_name: "${{ steps.refs.outputs.image_full_name }}-${{ steps.generate-tag.outputs.tag }}-${{ steps.base-image.outputs.version }}.iso"
 
       - name: Upload ISO to R2
         run: |

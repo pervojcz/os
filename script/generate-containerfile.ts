@@ -62,13 +62,25 @@ function getRegistryTags(localTags: string[]) {
   return localTags.map((tag) => `${imageRegistry}/${tag}`);
 }
 
+if (imageRegistry && !(await exists(join(repoRoot, "cosign.pub")))) {
+  console.error(
+    "IMAGE_REGISTRY is set but cosign.pub is missing at the repository root",
+  );
+  process.exit(1);
+}
+
 const containerfileRel = join(".generated", variantName, "Containerfile");
 const containerfilePath = join(repoRoot, containerfileRel);
 
 await mkdir(dirname(containerfilePath), { recursive: true });
 await writeFile(
   containerfilePath,
-  generateContainerfile(metadata.baseImage, variantName, taskNames),
+  generateContainerfile(
+    metadata.baseImage,
+    variantName,
+    taskNames,
+    imageRegistry,
+  ),
   "utf8",
 );
 

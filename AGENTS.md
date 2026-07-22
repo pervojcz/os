@@ -19,7 +19,8 @@ Guidance for coding agents working in this repository.
 - `package.json` (no npm scripts).
 - `tsconfig.json` (`strict: true`, bundler module resolution, ESNext target).
 - `.editorconfig` (2 spaces, LF, trim trailing whitespace, final newline).
-- `Containerfile` (base image build contract).
+- `Containerfile` (base image build contract; generated under `.generated/`).
+- `cosign.pub` (public key for Cosign image signatures; private key is never committed).
 - `src/start-script.ts` and `src/run-script.sh` (variant execution path).
 
 ## Cursor / Copilot Rules
@@ -62,28 +63,37 @@ This repository uses direct Bun/TS commands (not package scripts).
 - `build.yml`
   - computes variant matrix via `script/list-variants.ts`
   - generates Containerfile via `script/generate-containerfile.ts`, then builds with Blacksmith Docker actions
+  - when `IMAGE_REGISTRY` is set, the generated Containerfile installs Cosign trust
+    (`/etc/pki/containers/os.pub`, merges `policy.json`, writes `registries.d`)
+  - non-PR builds sign the pushed image digest with Cosign v2.6.3 using `SIGNING_SECRET`
 - `iso.yml`
-  - installs dependencies with `bun install`
-  - gets base image via `script/get-base-image.ts`
-  - builds ISO and uploads artifacts
+  - requires a previously signed GHCR image for the requested tag (`latest` or git tag)
+  - verifies the signature with `cosign.pub` before building
+  - builds ISO with `image_signed: true` (install uses signed transport / sigpolicy)
   - uploads outputs via `script/upload-file.ts`
 
 ## Environment Variables Used
 Build-related:
-- `REGISTRY_USER`
-- `REGISTRY_PASSWORD`
 - `IMAGE_NAME`
 - `IMAGE_REGISTRY`
 - `GH_REPO`
 - `GH_REF_TYPE`
 - `GH_REF_NAME`
 - `GH_PR`
+- `SIGNING_SECRET` (GitHub Actions secret; Cosign private key for non-PR image signing)
+- Auth to GHCR uses `github.actor` + `github.token` (not `REGISTRY_USER` / `REGISTRY_PASSWORD`)
 ISO upload-related:
 - `R2_ENDPOINT`
 - `R2_PUBLIC_URL`
 - `R2_ACCESS_KEY_ID`
 - `R2_SECRET_ACCESS_KEY`
 - `R2_BUCKET`
+
+### Cosign verification
+```bash
+cosign verify --key cosign.pub ghcr.io/<owner>/<repo>-<variant>@sha256:<digest>
+```
+On-image trust paths: `/etc/pki/containers/os.pub`, `/etc/containers/policy.json`, `/etc/containers/registries.d/os.yaml`.
 
 ## Code Style Guidelines
 
