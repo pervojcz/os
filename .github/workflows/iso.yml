@@ -112,6 +112,19 @@ jobs:
           docker save -o "${GITHUB_WORKSPACE}/iso-image.tar" "$ref"
           echo "image_src=docker-archive:/github/workspace/iso-image.tar" >> "$GITHUB_OUTPUT"
 
+      # Lorax/mkefiboot needs /dev/loop* nodes; nested Docker often allocates a
+      # loop index without creating the device node ("device node ... is lost").
+      - name: Ensure loop device nodes
+        run: |
+          set -euo pipefail
+          sudo modprobe loop || true
+          for i in $(seq 0 63); do
+            if [[ ! -e "/dev/loop${i}" ]]; then
+              sudo mknod -m 0660 "/dev/loop${i}" b 7 "${i}"
+            fi
+          done
+          ls -la /dev/loop-control /dev/loop0 /dev/loop8 /dev/loop16
+
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
         id: iso-build
