@@ -4,6 +4,7 @@ import Core from "../_core/variant";
 import { getBitwardenTask } from "./scripts/bitwarden";
 import { getBuildEssentialsTask } from "./scripts/build-essentials";
 import { getCursorTask } from "./scripts/cursor";
+import { getLenovoLegionLinuxTask } from "./scripts/lenovo-legion-linux";
 import { getLogiopsTask } from "./scripts/logiops";
 import { getMiseTask } from "./scripts/mise";
 import { getNiriTask } from "./scripts/niri";
@@ -27,6 +28,7 @@ export default Core.extend(
       getMiseTask("mise"),
     ]),
     getLogiopsTask("logiops"),
+    getLenovoLegionLinuxTask("lenovo-legion-linux"),
     mergeTasks("code-editors", [
       getOpencodeTask("opencode"),
       getCursorTask("cursor"),
