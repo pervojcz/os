@@ -14,6 +14,8 @@ export const getLenovoLegionLinuxTask = createTaskGetter(async (ctx) => {
   await ctx.installPackages(
     "dkms-LenovoLegionLinux",
     "python3-build",
+    "python3-setuptools",
+    "python3-wheel",
     "python3-pyqt6",
     "python3-pyyaml",
     "python3-argcomplete",
