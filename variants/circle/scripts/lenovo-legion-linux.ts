@@ -7,6 +7,9 @@ export const getLenovoLegionLinuxTask = createTaskGetter(async (ctx) => {
   // python-LenovoLegionLinux is still built for Python 3.13 and fails on Fedora 44
   // (Python 3.14), so only the DKMS package comes from COPR; userspace is built
   // from the upstream release tag.
+  //
+  // Do not install gcc/make from live repos here: the nvidia base pins an older
+  // toolchain via Koji (see build-essentials).
   await ctx.addRepositoryFromCopr("mrduarte/LenovoLegionLinux");
   await ctx.installPackages(
     "dkms-LenovoLegionLinux",
@@ -15,12 +18,8 @@ export const getLenovoLegionLinuxTask = createTaskGetter(async (ctx) => {
     "python3-pyqt6",
     "python3-pyyaml",
     "python3-argcomplete",
-    "python3-setuptools",
-    "python3-wheel",
     "python3-pip",
     "inih-devel",
-    "make",
-    "gcc",
     "git",
     "dmidecode",
     "lm_sensors",
@@ -29,7 +28,7 @@ export const getLenovoLegionLinuxTask = createTaskGetter(async (ctx) => {
   const repoDir = join(ctx.getTempDir("lenovo-legion-linux"), "src");
   await $`git clone --depth 1 --branch v0.0.20 https://github.com/johnfanv2/LenovoLegionLinux.git ${repoDir}`;
 
-  await $`pip3 install --prefix=/usr darkdetect`;
+  await $`pip3 install --prefix=/usr --root-user-action=ignore darkdetect`;
 
   const pythonDir = join(repoDir, "python", "legion_linux");
   await $`sed -i 's/version = _VERSION/version = 0.0.20/g' ${join(pythonDir, "setup.cfg")}`;
@@ -45,6 +44,6 @@ export const getLenovoLegionLinuxTask = createTaskGetter(async (ctx) => {
   await $`install -Dm644 ${join(serviceDir, "legiond.service")} /usr/lib/systemd/system/legiond.service`;
   await $`install -Dm644 ${join(serviceDir, "legiond-onresume.service")} /usr/lib/systemd/system/legiond-onresume.service`;
 
-  await $`cp -r /usr/share/legion_linux /etc/legion_linux`;
+  await $`cp -a /usr/share/legion_linux /etc/legion_linux`;
   await $`systemctl enable legiond`;
 });
