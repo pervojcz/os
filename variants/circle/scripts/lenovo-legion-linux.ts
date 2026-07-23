@@ -14,7 +14,6 @@ export const getLenovoLegionLinuxTask = createTaskGetter(async (ctx) => {
   await ctx.installPackages(
     "dkms-LenovoLegionLinux",
     "python3-build",
-    "python3-installer",
     "python3-pyqt6",
     "python3-pyyaml",
     "python3-argcomplete",
@@ -28,15 +27,19 @@ export const getLenovoLegionLinuxTask = createTaskGetter(async (ctx) => {
   const repoDir = join(ctx.getTempDir("lenovo-legion-linux"), "src");
   await $`git clone --depth 1 --branch v0.0.20 https://github.com/johnfanv2/LenovoLegionLinux.git ${repoDir}`;
 
+  // darkdetect is not packaged on Fedora 44; use pip for that dependency only.
   await $`pip3 install --prefix=/usr --root-user-action=ignore darkdetect`;
 
   const pythonDir = join(repoDir, "python", "legion_linux");
   await $`sed -i 's/version = _VERSION/version = 0.0.20/g' ${join(pythonDir, "setup.cfg")}`;
   await $`python3 -m build --wheel --no-isolation`.cwd(pythonDir);
-  await $`python3 -m installer --destdir=/ ${join(pythonDir, "dist", "legion_linux-0.0.20-py3-none-any.whl")}`;
+  // --no-deps keeps system PyQt6/PyYAML; --prefix=/usr avoids /usr/local.
+  await $`pip3 install --prefix=/usr --no-deps --root-user-action=ignore ${join(pythonDir, "dist", "legion_linux-0.0.20-py3-none-any.whl")}`;
 
   const legiondDir = join(repoDir, "extra", "service", "legiond");
-  await $`make`.cwd(legiondDir);
+  // GCC 14+ rejects the upstream timer callback signature.
+  await $`sed -i 's/void timer_handler()/void timer_handler(union sigval sv)/' ${join(legiondDir, "legiond.c")}`;
+  await $`make CC=gcc`.cwd(legiondDir);
   await $`install -Dm755 ${join(legiondDir, "legiond")} /usr/bin/legiond`;
   await $`install -Dm755 ${join(legiondDir, "legiond-ctl")} /usr/bin/legiond-ctl`;
 
