@@ -62,7 +62,7 @@ This repository uses direct Bun/TS commands (not package scripts).
 ## CI Behavior Summary
 - `build.yml`
   - computes variant matrix via `script/list-variants.ts`
-  - generates Containerfile via `script/generate-containerfile.ts`, then builds with Blacksmith Docker actions
+  - generates Containerfile via `script/generate-containerfile.ts`, then builds with `docker/build-push-action` on Blacksmith runners (no Docker layer cache; builds must pick up newer packages)
   - when `IMAGE_REGISTRY` is set, the generated Containerfile installs Cosign trust
     (`/etc/pki/containers/os.pub`, merges `policy.json`, writes `registries.d`)
   - non-PR builds sign the pushed image digest with Cosign v2.6.3 using `SIGNING_SECRET`
