@@ -78,6 +78,9 @@ jobs:
           name: osbuilder
           path: dist
 
+      - name: Make script executable
+        run: chmod +x dist/osbuilder
+
       - name: Generate Containerfile
         id: containerfile
         run: |
