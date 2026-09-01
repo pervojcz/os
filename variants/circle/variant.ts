@@ -1,46 +1,41 @@
-import { join } from "path";
-import { createTask, mergeTasks } from "~/utils/create-variant";
-import Core from "../_core/variant";
-import { getBitwardenTask } from "./scripts/bitwarden";
-import { getBuildEssentialsTask } from "./scripts/build-essentials";
-import { getCursorTask } from "./scripts/cursor";
-import { getLenovoLegionLinuxTask } from "./scripts/lenovo-legion-linux";
-import { getLogiopsTask } from "./scripts/logiops";
-import { getMiseTask } from "./scripts/mise";
-import { getNiriTask } from "./scripts/niri";
-import { getOpencodeTask } from "./scripts/opencode";
-import { getVicinaeTask } from "./scripts/vicinae";
-import { getVirtualizationTask } from "./scripts/virtualization";
-import { getVscodeTask } from "./scripts/vscode";
+import { defineVariant } from "~/define-variant";
+import runSharedScripts from "../_shared";
+import { setupBitwardenPolkitPolicy } from "./scripts/bitwarden";
+import { installCursor } from "./scripts/cursor";
+import { installLenovoLegionLinux } from "./scripts/lenovo-legion-linux";
+import { installLogiops } from "./scripts/logiops";
+import { installMise } from "./scripts/mise";
+import { installOpencode } from "./scripts/opencode";
+import { installPrinterDrivers } from "./scripts/printer";
+import { installVicinae } from "./scripts/vicinae";
+import { installVirtualizationPackages } from "./scripts/virtualization";
+import { installVscode } from "./scripts/vscode";
 
-export default Core.extend(
-  {
-    name: "circle",
-    imageTitle: "Circle OS",
-    imageDescription: "Personal OS image based on Fedora Silverblue",
-    baseDirectory: __dirname,
+const circleVariant = defineVariant({
+  name: "circle",
+  metadata: {
+    title: "Circle OS",
+    description: "Personal OS image based on Fedora Silverblue",
   },
-  [],
-  [
-    mergeTasks("dev-environment", [
-      getBuildEssentialsTask("build-essentials"),
-      getVirtualizationTask("virtualization"),
-      getMiseTask("mise"),
-    ]),
-    getLogiopsTask("logiops"),
-    getLenovoLegionLinuxTask("lenovo-legion-linux"),
-    mergeTasks("code-editors", [
-      getOpencodeTask("opencode"),
-      getCursorTask("cursor"),
-      getVscodeTask("vscode"),
-    ]),
-    mergeTasks("desktop-apps", [
-      getVicinaeTask("vicinae"),
-      getBitwardenTask("bitwarden"),
-    ]),
-    getNiriTask("niri"),
-    createTask("files", async (ctx) => {
-      await ctx.copyFiles(join(ctx.baseDirectory, "files"));
-    }),
-  ],
-);
+  baseImage: "ghcr.io/ublue-os/silverblue-nvidia:44",
+  builder: async () => {
+    await runSharedScripts();
+
+    await installVirtualizationPackages();
+
+    await installMise();
+
+    await installLenovoLegionLinux();
+    await installLogiops();
+    await installPrinterDrivers();
+
+    await installVscode();
+    await installCursor();
+    await installOpencode();
+
+    await setupBitwardenPolkitPolicy();
+    await installVicinae();
+  },
+});
+
+export default circleVariant;

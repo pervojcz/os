@@ -1,6 +1,6 @@
-import { createTaskGetter } from "~/utils/create-variant";
+import tools from "~/tools";
 
-export const getMiseTask = createTaskGetter(async (ctx) => {
-  await ctx.addRepositoryFromCopr("jdxcode/mise");
-  await ctx.installPackages("mise");
-});
+export async function installMise() {
+  await tools.repos.addRepositoryFromCopr("jdxcode/mise");
+  await tools.packages.installPackages("mise");
+}

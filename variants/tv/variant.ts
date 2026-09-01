@@ -1,17 +1,18 @@
-import { createTask } from "~/utils/create-variant";
-import Core from "../_core/variant";
+import { defineVariant } from "~/define-variant";
+import tools from "~/tools";
+import runSharedScripts from "../_shared";
 
-export default Core.extend(
-  {
-    name: "tv",
-    imageTitle: "TV OS",
-    imageDescription: "Custom TV OS image based on Fedora Silverblue",
-    baseDirectory: __dirname,
+const tvVariant = defineVariant({
+  name: "tv",
+  metadata: {
+    title: "TV OS",
+    description: "Custom TV OS image based on Fedora Silverblue",
   },
-  [],
-  [
-    createTask("kodi", async (ctx) => {
-      await ctx.installPackages("kodi");
-    }),
-  ],
-);
+  baseImage: "ghcr.io/ublue-os/silverblue-main:44",
+  builder: async () => {
+    await runSharedScripts();
+    await tools.packages.installPackages("kodi");
+  },
+});
+
+export default tvVariant;

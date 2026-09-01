@@ -15,7 +15,6 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_DESC: "Personal OS image based on Fedora Silverblue"
   IMAGE_NAME: "${{ github.event.repository.name }}"
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
   GH_REPO: "${{ github.repository }}"
@@ -24,8 +23,8 @@ env:
   GH_PR: "${{ github.event.number }}"
 
 jobs:
-  variants:
-    name: Prepare list of variants
+  prepare:
+    name: Compile script and get list of variants
     runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       variants: ${{ steps.json.outputs.variants }}
@@ -36,13 +35,26 @@ jobs:
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Load variants
+      - name: Install dependencies
+        run: bun install
+
+      - name: Compile script
+        run: bun run build
+
+      - name: Upload script artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: osbuilder
+          path: dist/osbuilder
+          retention-days: 1
+
+      - name: Get list of variants
         id: json
         run: |
-          output=$(bun script/list-variants.ts)
+          output=$(dist/osbuilder list-variants)
           echo "variants=$output" >> $GITHUB_OUTPUT
 
-  build_push:
+  build:
     name: Build and push image
     runs-on: blacksmith-4vcpu-ubuntu-2404
 
@@ -51,38 +63,46 @@ jobs:
       packages: write
       id-token: write
 
-    needs: variants
+    needs: prepare
     strategy:
       matrix:
-        variant: ${{ fromJson(needs.variants.outputs.variants) }}
+        variant: ${{ fromJson(needs.prepare.outputs.variants) }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Download script artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: osbuilder
+          path: dist/osbuilder
 
       - name: Generate Containerfile
-        id: generate
+        id: containerfile
         run: |
-          output=$(bun script/generate-containerfile.ts ${{ matrix.variant }})
-          containerfile=$(echo "$output" | jq -r '.containerfile')
-          echo "containerfile=$containerfile" >> $GITHUB_OUTPUT
+          containerfile_path="Containerfile.${{ matrix.variant }}"
+          dist/osbuilder generate-containerfile ${{ matrix.variant }} -r ${{ env.IMAGE_REGISTRY }} > "$containerfile_path"
+          echo "containerfile=$containerfile_path" >> $GITHUB_OUTPUT
 
-          tags=$(echo "$output" | jq -r '.tags | join("\n")')
-          {
-            echo "tags<<EOF"
-            echo "$tags"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+      - name: Generate image tags
+        id: tags
+        run: |
+          image_path="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.variant }}"
 
-          labels=$(echo "$output" | jq -r '.labels | join("\n")')
-          {
-            echo "labels<<EOF"
-            echo "$labels"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          tags=""
+
+          if [[ -z "${{ env.GH_PR }}" ]]; then
+            tags="${tags}\n${image_path}:latest"
+          else
+            tags="${tags}\n${image_path}:pr-${{ env.GH_PR }}"
+          fi
+
+          if [[ "${{ env.GH_REF_TYPE }}" == "tag" ]]; then
+            tags="${tags}\n${image_path}:${{ env.GH_REF_NAME }}"
+          fi
+
+          echo 'tags="$tags"' >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -99,10 +119,9 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ${{ steps.generate.outputs.containerfile }}
+          file: ${{ steps.containerfile.outputs.containerfile }}
           push: true
-          tags: ${{ steps.generate.outputs.tags }}
-          labels: ${{ steps.generate.outputs.labels }}
+          tags: ${{ fromJSON(steps.tags.outputs.tags) }}
 
       - name: Install Cosign
         if: github.event_name != 'pull_request'

@@ -1,9 +1,9 @@
-import { createTaskGetter } from "~/utils/create-variant";
+import tools from "~/tools";
 
-export const getVscodeTask = createTaskGetter(async (ctx) => {
-  await ctx.addRepositoryFromUrl(
+export async function installVscode() {
+  await tools.repos.addRepositoryFromUrl(
     "https://packages.microsoft.com/yumrepos/vscode/config.repo",
   );
 
-  await ctx.installPackages("code");
-});
+  await tools.packages.installPackages("code");
+}

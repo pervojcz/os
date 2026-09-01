@@ -1,12 +1,12 @@
 import { $ } from "bun";
 import { join } from "path";
-import { createTaskGetter } from "~/utils/create-variant";
+import tools from "~/tools";
 
-export const getVicinaeTask = createTaskGetter(async (ctx) => {
-  await ctx.addRepositoryFromCopr("quadratech188/vicinae");
-  await ctx.installPackages("vicinae");
+export async function installVicinae() {
+  await tools.repos.addRepositoryFromCopr("quadratech188/vicinae");
+  await tools.packages.installPackages("vicinae");
 
-  const assets = await ctx.getReleaseAssets(
+  const assets = await tools.github.getReleaseAssets(
     "dagimg-dot/vicinae-gnome-extension",
   );
   const extensionAsset = assets.find((a) =>
@@ -15,13 +15,12 @@ export const getVicinaeTask = createTaskGetter(async (ctx) => {
   if (!extensionAsset) {
     throw new Error("Vicinae GNOME extension asset not found");
   }
-
-  const tempDir = ctx.getTempDir(
+  const tempDir = await tools.files.createTmpDir(
     "vicinae-gnome-extension",
     extensionAsset.name,
   );
   const zipFile = join(tempDir, extensionAsset.name);
-  await ctx.downloadFile(extensionAsset.url, zipFile);
+  await tools.download.downloadFile(extensionAsset.url, zipFile);
 
   await $`gnome-extensions install --force ${zipFile}`;
 
@@ -30,4 +29,4 @@ export const getVicinaeTask = createTaskGetter(async (ctx) => {
   // await $`unzip -o ${zipFile} -d ${extensionDir}`;
 
   await $`systemctl --global enable vicinae`;
-});
+}
