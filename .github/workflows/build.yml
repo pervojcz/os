@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: osbuilder
-          path: dist/osbuilder
+          path: dist
           retention-days: 1
 
       - name: Get list of variants
@@ -76,7 +76,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: osbuilder
-          path: dist/osbuilder
+          path: dist
 
       - name: Generate Containerfile
         id: containerfile
