@@ -6,6 +6,7 @@ import * as fonts from "./fonts";
 import * as git from "./git";
 import * as github from "./github";
 import * as gschema from "./gschema";
+import * as oras from "./oras";
 import * as packages from "./packages";
 import * as repos from "./repos";
 import * as utils from "./utils";
@@ -19,6 +20,7 @@ const tools = {
   git,
   github,
   gschema,
+  oras,
   packages,
   repos,
   utils,
