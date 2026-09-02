@@ -31,5 +31,7 @@ export async function installPrinterDrivers() {
     "https://www.oki.com/eu/printing/download/okimfpsdrv-1.7-0.x86_64_231228.rpm",
     scannerDriverRpm,
   );
-  await tools.packages.installPackages(scannerDriverRpm);
+
+  // the vendor RPM has no embedded digest, so DNF and rpm-ostree reject it
+  await $`rpm --install --nodigest ${scannerDriverRpm}`;
 }
