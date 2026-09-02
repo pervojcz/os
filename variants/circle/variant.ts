@@ -1,11 +1,11 @@
 import { defineVariant } from "~/define-variant";
 import runSharedScripts from "../_shared";
-import { installAuthFace } from "./scripts/authface";
 import { setupBitwardenPolkitPolicy } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
 import { installFonts } from "./scripts/fonts";
 import { installGhostty } from "./scripts/ghostty";
 import { createGnomeOverrides } from "./scripts/gnome-overrides";
+import { installHowdy } from "./scripts/howdy";
 import { installLenovoLegionLinux } from "./scripts/lenovo-legion-linux";
 import { installLogiops } from "./scripts/logiops";
 import { installMise } from "./scripts/mise";
@@ -42,7 +42,8 @@ const circleVariant = defineVariant({
     await installOpencode();
 
     await setupBitwardenPolkitPolicy();
-    await installAuthFace();
+    await installHowdy();
+    // await installAuthFace();
     await installVicinae();
   },
 });
