@@ -26,7 +26,10 @@ export async function installPrinterDrivers() {
   await $`chmod 644 ${outDir}/*`;
 
   // scanner driver
-  await tools.packages.installPackages(
+  const scannerDriverRpm = join(tmpDir, "okimfpsdrv.rpm");
+  await tools.download.downloadFile(
     "https://www.oki.com/eu/printing/download/okimfpsdrv-1.7-0.x86_64_231228.rpm",
+    scannerDriverRpm,
   );
+  await tools.packages.installPackages(scannerDriverRpm);
 }
