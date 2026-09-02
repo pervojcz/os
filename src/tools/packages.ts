@@ -27,3 +27,8 @@ export async function replacePackages(remove: string[], install: string[]) {
   console.log("Replacing packages:", ...remove, "->", ...install);
   await $`dnf5 -y --allowerasing remove ${remove} install ${install}`;
 }
+
+export async function upgrade() {
+  console.log("Upgrading packages");
+  await $`dnf5 -y upgrade`;
+}
