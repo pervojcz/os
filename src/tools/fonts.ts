@@ -23,6 +23,9 @@ export async function installGoogleFont(fontId: string, subsets?: string[]) {
   await $`chmod 755 ${googleFontsInstallDir}`.quiet();
 
   await tools.files.copyFromDir(tmpDir, googleFontsInstallDir);
+  console.log(`Installed ${font.family} to ${googleFontsInstallDir}:`);
+  await $`ls -ls ${googleFontsInstallDir}`;
+
   await $`chmod 644 ${join(googleFontsInstallDir, "*")}`.quiet();
   await $`fc-cache -f`.quiet();
 }
