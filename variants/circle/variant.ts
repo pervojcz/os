@@ -2,6 +2,8 @@ import { defineVariant } from "~/define-variant";
 import runSharedScripts from "../_shared";
 import { setupBitwardenPolkitPolicy } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
+import { installFonts } from "./scripts/fonts";
+import { createGnomeOverrides } from "./scripts/gnome-overrides";
 import { installLenovoLegionLinux } from "./scripts/lenovo-legion-linux";
 import { installLogiops } from "./scripts/logiops";
 import { installMise } from "./scripts/mise";
@@ -28,6 +30,9 @@ const circleVariant = defineVariant({
     await installLenovoLegionLinux();
     await installLogiops();
     await installPrinterDrivers();
+
+    await installFonts();
+    await createGnomeOverrides();
 
     await installVscode();
     await installCursor();

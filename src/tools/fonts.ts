@@ -1,4 +1,5 @@
 import { $ } from "bun";
+import { exists, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import tools from ".";
 
@@ -16,18 +17,17 @@ export async function installGoogleFont(fontId: string, subsets?: string[]) {
       );
 
       await tools.download.downloadFile(v.ttf, fontFile);
+      await $`chmod 644 ${fontFile}`;
     }),
   );
 
-  await $`mkdir -p ${googleFontsInstallDir}`.quiet();
-  await $`chmod 755 ${googleFontsInstallDir}`.quiet();
+  if (!(await exists(googleFontsInstallDir))) {
+    await mkdir(googleFontsInstallDir, { recursive: true });
+    await $`chmod 755 ${googleFontsInstallDir}`;
+  }
 
   await tools.files.copyFromDir(tmpDir, googleFontsInstallDir);
-  console.log(`Installed ${font.family} to ${googleFontsInstallDir}:`);
-  await $`ls -ls ${googleFontsInstallDir}`;
-
-  await $`chmod 644 ${join(googleFontsInstallDir, "*")}`.quiet();
-  await $`fc-cache -f`.quiet();
+  await $`fc-cache -f`;
 }
 
 async function getGoogleFont(fontId: string, subsets?: string[]) {
