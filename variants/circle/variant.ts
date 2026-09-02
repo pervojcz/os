@@ -3,6 +3,7 @@ import runSharedScripts from "../_shared";
 import { setupBitwardenPolkitPolicy } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
 import { installFonts } from "./scripts/fonts";
+import { installGhostty } from "./scripts/ghostty";
 import { createGnomeOverrides } from "./scripts/gnome-overrides";
 import { installLenovoLegionLinux } from "./scripts/lenovo-legion-linux";
 import { installLogiops } from "./scripts/logiops";
@@ -25,6 +26,7 @@ const circleVariant = defineVariant({
 
     await installVirtualizationPackages();
 
+    await installGhostty();
     await installMise();
 
     await installLenovoLegionLinux();
