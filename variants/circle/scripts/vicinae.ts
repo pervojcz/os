@@ -6,7 +6,7 @@ export async function installVicinae() {
   // install Vicinae
   await tools.repos.addRepositoryFromCopr("quadratech188/vicinae");
   await tools.packages.installPackages("vicinae");
-  await $`systemctl enable vicinae`;
+  await $`systemctl --global enable vicinae`;
 
   // install Vicinae GNOME extension
   const assets = await tools.github.getReleaseAssets(
