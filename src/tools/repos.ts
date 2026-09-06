@@ -1,5 +1,5 @@
 import { $ } from "bun";
-import { writeFile } from "fs/promises";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createTmpDir } from "~/tools/files";
 import tools from ".";

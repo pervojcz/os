@@ -1,7 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import { createReadStream } from "fs";
-import { basename } from "path";
+import { createReadStream } from "node:fs";
+import { basename } from "node:path";
 
 const endpoint = process.env.R2_ENDPOINT!;
 const publicUrl = process.env.R2_PUBLIC_URL!;
