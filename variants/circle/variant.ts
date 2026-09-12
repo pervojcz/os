@@ -10,7 +10,6 @@ import { installLenovoLegionLinux } from "./scripts/lenovo-legion-linux";
 import { installLogiops } from "./scripts/logiops";
 import { installMise } from "./scripts/mise";
 import { installOpencode } from "./scripts/opencode";
-import { installOpenLogi } from "./scripts/openlogi";
 import { installPrinterDrivers } from "./scripts/printer";
 import { installVicinae } from "./scripts/vicinae";
 import { installVirtualizationPackages } from "./scripts/virtualization";
@@ -33,7 +32,6 @@ const circleVariant = defineVariant({
 
     await installLenovoLegionLinux();
     await installLogiops();
-    await installOpenLogi();
     await installPrinterDrivers();
 
     await installFonts();
