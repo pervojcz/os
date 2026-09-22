@@ -8,5 +8,9 @@ export async function installMiscPackages() {
     "langpacks-cs",
     "nautilus-python",
     "steam-devices",
+
+    // appimage libs
+    "fuse",
+    "fuse-libs",
   );
 }
