@@ -8,7 +8,6 @@ import { installGhostty } from "./scripts/ghostty";
 import { createGnomeOverrides } from "./scripts/gnome-overrides";
 import { installLenovoLegionLinux } from "./scripts/lenovo-legion-linux";
 import { installLogiops } from "./scripts/logiops";
-import { installMise } from "./scripts/mise";
 import { installOpencode } from "./scripts/opencode";
 import { installPrinterDrivers } from "./scripts/printer";
 import { installVicinae } from "./scripts/vicinae";
@@ -28,7 +27,6 @@ const circleVariant = defineVariant({
     await installVirtualizationPackages();
 
     await installGhostty();
-    await installMise();
 
     await installLenovoLegionLinux();
     await installLogiops();
