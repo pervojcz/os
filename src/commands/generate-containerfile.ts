@@ -1,6 +1,6 @@
 import type { VariantConfig } from "~/define-variant";
 import { getGitHubVariables } from "~/utils/get-github-variables";
-import { getImageKernelVersion } from "~/utils/image-kernel-version";
+import { assertBootableImage } from "~/utils/labels";
 import variants from "../../variants/variants";
 
 const osProjectName = "circle-os";
@@ -16,10 +16,8 @@ export async function generateContainerfile(
 
   const variant = variants[variantName as keyof typeof variants];
 
-  await getImageKernelVersion(variant.baseImage).catch((error) => {
-    console.error(error.message);
-    process.exit(1);
-  });
+  await assertBootableImage(variant.baseImage);
+  //await getImageKernelVersion(variant.baseImage);
 
   const osBuilderPath = "/tmp/osbuilder";
 
