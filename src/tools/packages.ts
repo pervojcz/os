@@ -35,7 +35,7 @@ export async function upgrade() {
 }
 
 export async function downloadPackages(...packages: string[]) {
-  if (!packages.length) return;
+  if (!packages.length) return [];
   console.log("Downloading packages:", ...packages);
   const tmpDir = await tools.files.createTmpDir("pkgs", ...packages);
   await $`dnf5 -y download --destdir=${tmpDir} ${packages}`;
