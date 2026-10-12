@@ -13,7 +13,7 @@ export async function addRepositoryFromUrl(url: `${Url}.repo`) {
 
   console.log("Downloading repository:", fileName);
   await downloadFile(url, outputPath);
-  await addRepositoryFromFile(fileName, outputPath);
+  return await addRepositoryFromFile(fileName, outputPath);
 }
 
 export async function addRepositoryFromString(
@@ -25,7 +25,7 @@ export async function addRepositoryFromString(
 
   console.log("Writing repository:", fileName);
   await writeFile(outputPath, trimLines(content), { encoding: "utf8" });
-  await addRepositoryFromFile(fileName, outputPath);
+  return await addRepositoryFromFile(fileName, outputPath);
 }
 
 export async function addRepositoryFromFile(
@@ -33,14 +33,21 @@ export async function addRepositoryFromFile(
   filePath: string,
 ) {
   console.log("Installing repository:", fileName);
-  await $`install -o 0 -g 0 -m644 ${filePath} ${`/etc/yum.repos.d/${fileName}`}`;
+  await $`install -o 0 -g 0 -m644 ${filePath} ${join("/etc/yum.repos.d", fileName)}`;
+  return fileName;
 }
 
 export async function addRepositoryFromCopr(copr: `${string}/${string}`) {
   const [org, repo] = copr.split("/");
   console.log("Adding Copr repository:", org, repo);
   const { fedoraVersion } = await tools.fedora.getFedoraInfo();
-  await addRepositoryFromUrl(
+  return await addRepositoryFromUrl(
     `https://copr.fedorainfracloud.org/coprs/${org}/${repo}/repo/fedora-${fedoraVersion}/${org}-${repo}-fedora-${fedoraVersion}.repo`,
   );
+}
+
+export async function removeRepository(fileName: string) {
+  console.log("Removing repository:", fileName);
+  await $`rm -f ${join("/etc/yum.repos.d", fileName)}`;
+  return fileName;
 }
