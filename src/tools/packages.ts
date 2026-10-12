@@ -1,4 +1,5 @@
 import { $ } from "bun";
+import tools from ".";
 
 export async function isPackageInstalled(packageName: string) {
   const result = await $`rpm -q ${packageName}`.nothrow();
@@ -31,4 +32,12 @@ export async function replacePackages(remove: string[], install: string[]) {
 export async function upgrade() {
   console.log("Upgrading packages");
   await $`dnf5 -y upgrade`;
+}
+
+export async function downloadPackages(...packages: string[]) {
+  if (!packages.length) return;
+  console.log("Downloading packages:", ...packages);
+  const tmpDir = await tools.files.createTmpDir("pkgs", ...packages);
+  await $`dnf5 -y download --destdir=${tmpDir} ${packages}`;
+  return await tools.files.list(tmpDir);
 }
