@@ -41,3 +41,8 @@ export async function downloadPackages(...packages: string[]) {
   await $`dnf5 -y download --destdir=${tmpDir} ${packages}`;
   return await tools.files.list(tmpDir);
 }
+
+export async function extractPackage(packagePath: string, outputDir: string) {
+  console.log("Extracting package:", packagePath, "->", outputDir);
+  await $`rpm2cpio ${packagePath} | cpio -idmv -D ${outputDir}`;
+}
