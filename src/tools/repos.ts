@@ -33,7 +33,7 @@ export async function addRepositoryFromFile(
   filePath: string,
 ) {
   console.log("Installing repository:", fileName);
-  await $`install -o 0 -g 0 -m644 ${filePath} ${`/etc/yum.repos.d/${fileName}`}`;
+  await $`install -o 0 -g 0 -m644 ${filePath} ${join("/etc/yum.repos.d", fileName)}`;
 }
 
 export async function addRepositoryFromCopr(copr: `${string}/${string}`) {
@@ -43,4 +43,9 @@ export async function addRepositoryFromCopr(copr: `${string}/${string}`) {
   await addRepositoryFromUrl(
     `https://copr.fedorainfracloud.org/coprs/${org}/${repo}/repo/fedora-${fedoraVersion}/${org}-${repo}-fedora-${fedoraVersion}.repo`,
   );
+}
+
+export async function removeRepository(fileName: string) {
+  console.log("Removing repository:", fileName);
+  await $`rm -f ${join("/etc/yum.repos.d", fileName)}`;
 }
