@@ -33,9 +33,8 @@ export async function addRepositoryFromFile(
   filePath: string,
 ) {
   console.log("Installing repository:", fileName);
-  const repoPath = join("/etc/yum.repos.d", fileName);
-  await $`install -o 0 -g 0 -m644 ${filePath} ${repoPath}`;
-  return repoPath;
+  await $`install -o 0 -g 0 -m644 ${filePath} ${join("/etc/yum.repos.d", fileName)}`;
+  return fileName;
 }
 
 export async function addRepositoryFromCopr(copr: `${string}/${string}`) {
@@ -49,7 +48,6 @@ export async function addRepositoryFromCopr(copr: `${string}/${string}`) {
 
 export async function removeRepository(fileName: string) {
   console.log("Removing repository:", fileName);
-  const repoPath = join("/etc/yum.repos.d", fileName);
-  await $`rm -f ${repoPath}`;
-  return repoPath;
+  await $`rm -f ${join("/etc/yum.repos.d", fileName)}`;
+  return fileName;
 }
