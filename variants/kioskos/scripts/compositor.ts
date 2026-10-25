@@ -51,7 +51,7 @@ After=getty@%i.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/cage ${defaultCommand}
+ExecStart=/usr/bin/cage -s -- ${defaultCommand}
 ExecStartPost=+sh -c "tty_name='%i'; exec chvt $\${tty_name#tty}"
 Restart=always
 User=cage
