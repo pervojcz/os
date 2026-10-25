@@ -18,6 +18,7 @@ async function installKodiStandaloneService() {
   await $`sed -i ${sedStr} ${tmpDir}/x86/init/*.service`;
   await $`sed -i ${sedStr} ${tmpDir}/arm/init/*.service`;
 
+  await tools.packages.installPackages("make");
   await $`make install -C ${tmpDir}`;
 
   await $`systemd-sysusers`;
