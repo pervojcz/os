@@ -5,6 +5,10 @@ import tools from ".";
 export async function rebuildInitramfs() {
   const { kernelRelease: r } = await tools.fedora.getFedoraInfo();
   const initramfsPath = join("/usr/lib/modules", r, "initramfs.img");
-  console.log("KERNEL RELEASE:", r, "INITRAMFS PATH:", initramfsPath);
-  await $`dracut --no-hostonly --kver ${r} --force ${initramfsPath}`;
+
+  await $`mkdir -p /var/roothome`;
+  await $`dracut --no-hostonly --kver ${r} --reproducible -v --add ostree -f ${initramfsPath}`.env(
+    { DRACUT_NO_XATTR: "1" },
+  );
+  await $`chmod 0600 ${initramfsPath}`;
 }
