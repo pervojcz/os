@@ -8,7 +8,7 @@ export async function rebuildInitramfs() {
 
   await $`mkdir -p /var/roothome`;
   await $`dracut --no-hostonly --kver ${r} --reproducible -v --add ostree -f ${initramfsPath}`.env(
-    { DRACUT_NO_XATTR: "1" },
+    { ...process.env, DRACUT_NO_XATTR: "1" },
   );
   await $`chmod 0600 ${initramfsPath}`;
 }
