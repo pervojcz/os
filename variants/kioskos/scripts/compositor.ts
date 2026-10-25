@@ -7,7 +7,7 @@ export async function setupCompositor() {
 
   await tools.packages.installPackages(
     "cage",
-    "gtk4-devel", // temporarily installed to run gtk4-widget-factory
+    "gtk4-devel-tools", // temporarily installed to run gtk4-widget-factory
   );
 
   // https://github.com/graysky2/kodi-standalone-service/blob/master/x86/init/tmpfiles.conf
