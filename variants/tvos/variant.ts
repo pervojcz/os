@@ -1,4 +1,5 @@
 import { defineVariant } from "~/define-variant";
+import { installPlymouth } from "../_shared/plymouth";
 import runSharedScriptsServer from "../_shared/server";
 import { installKodi } from "./scripts/kodi";
 
@@ -10,6 +11,7 @@ const tvOsVariant = defineVariant({
   },
   baseImage: "quay.io/fedora/fedora-coreos:stable",
   builder: async () => {
+    await installPlymouth();
     await runSharedScriptsServer();
     await installKodi();
   },
