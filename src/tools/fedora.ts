@@ -20,6 +20,7 @@ const architectures: Record<string, Architecture> = {
 };
 
 type FedoraInfo = {
+  kernelRelease: string;
   fedoraVersion: string;
   architecture: Architecture;
 };
@@ -29,11 +30,13 @@ let fedoraInfoCache: FedoraInfo | null = null;
 export async function getFedoraInfo() {
   if (fedoraInfoCache) return fedoraInfoCache;
 
+  const kernelRelease = (await $`uname -r`.text()).trim();
   const fedoraVersion = (await $`rpm -E %fedora`.text()).trim();
   const architectureName = (await $`uname -m`.text()).trim();
   const architecture = architectures[architectureName]!;
 
   fedoraInfoCache = {
+    kernelRelease,
     fedoraVersion,
     architecture,
   };
