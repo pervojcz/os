@@ -13,10 +13,17 @@ async function installKodiStandaloneService() {
 
   const pathToReplace = "/usr/lib/kodi/kodi.bin".replaceAll("/", "\\/");
   const pathReplacement = "/usr/bin/kodi".replaceAll("/", "\\/");
-  const sedStr = `s/${pathToReplace}/${pathReplacement}/g`;
+  const sedPathStr = `s/${pathToReplace}/${pathReplacement}/g`;
 
-  await $`sed -i ${sedStr} ${tmpDir}/x86/init/*.service`;
-  await $`sed -i ${sedStr} ${tmpDir}/arm/init/*.service`;
+  const strToReplace = "Alias=display-manager.service";
+  const strReplacement = [
+    "WantedBy=multi-user.target",
+    "Alias=display-manager.service",
+  ].join("\\n");
+  const sedWantedByStr = `s/${strToReplace}/${strReplacement}/g`;
+
+  await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} ${tmpDir}/x86/init/*.service`;
+  await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} ${tmpDir}/arm/init/*.service`;
 
   await tools.packages.installPackages("make");
   await $`make install -C ${tmpDir}`;
