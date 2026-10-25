@@ -1,6 +1,6 @@
 import { defineVariant } from "~/define-variant";
 import tools from "~/tools";
-import runSharedScripts from "../_shared";
+import runSharedScriptsGraphical from "../_shared/graphical";
 
 const tvVariant = defineVariant({
   name: "tv",
@@ -10,7 +10,7 @@ const tvVariant = defineVariant({
   },
   baseImage: "ghcr.io/ublue-os/silverblue-main:44",
   builder: async () => {
-    await runSharedScripts();
+    await runSharedScriptsGraphical();
     await tools.packages.installPackages("kodi");
   },
 });

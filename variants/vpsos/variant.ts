@@ -1,6 +1,5 @@
 import { defineVariant } from "~/define-variant";
-import { enableRpmfusion } from "../_shared/rpmfusion";
-import { installGhosttyTerminfo } from "./scripts/ghostty-terminfo";
+import runSharedScriptsServer from "../_shared/server";
 
 const vpsOsVariant = defineVariant({
   name: "vpsos",
@@ -10,8 +9,7 @@ const vpsOsVariant = defineVariant({
   },
   baseImage: "quay.io/fedora/fedora-coreos:stable",
   builder: async () => {
-    await enableRpmfusion();
-    await installGhosttyTerminfo();
+    await runSharedScriptsServer();
   },
 });
 
