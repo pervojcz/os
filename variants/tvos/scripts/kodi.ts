@@ -1,5 +1,4 @@
 import { $ } from "bun";
-import { join } from "node:path";
 import tools from "~/tools";
 
 export async function installKodi() {
@@ -12,14 +11,12 @@ async function installKodiStandaloneService() {
   const tmpDir = await tools.files.createTmpDir("kodi-standalone-service");
   await $`git clone ${gitUrl} ${tmpDir}`;
 
-  await $`ls ${tmpDir}`;
-
   const pathToReplace = "/usr/lib/kodi/kodi.bin".replaceAll("/", "\\/");
   const pathReplacement = "/usr/bin/kodi".replaceAll("/", "\\/");
   const sedStr = `s/${pathToReplace}/${pathReplacement}/g`;
 
-  await $`sed -i ${sedStr} ${join(tmpDir, "x86", "init", "*.service")}`;
-  await $`sed -i ${sedStr} ${join(tmpDir, "arm", "init", "*.service")}`;
+  await $`sed -i ${sedStr} ${tmpDir}/x86/init/*.service`;
+  await $`sed -i ${sedStr} ${tmpDir}/arm/init/*.service`;
 
   await $`make install -C ${tmpDir}`;
 
