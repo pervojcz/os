@@ -1,6 +1,7 @@
 import { defineVariant } from "~/define-variant";
 import { installPlymouth } from "../_shared/plymouth";
 import runSharedScriptsServer from "../_shared/server";
+import { setupCompositor } from "./scripts/compositor";
 
 const kioskOsVariant = defineVariant({
   name: "kioskos",
@@ -12,6 +13,7 @@ const kioskOsVariant = defineVariant({
   builder: async () => {
     await installPlymouth();
     await runSharedScriptsServer();
+    await setupCompositor();
   },
 });
 
