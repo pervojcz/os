@@ -23,11 +23,7 @@ async function installKodiStandaloneService() {
   const sedWantedByStr = `s/${wantedByToReplace}/${wantedByReplacement}/g`;
 
   const restartToReplace = "Restart=always";
-  const restartReplacement = [
-    "Restart=on-abnormal",
-    "AmbientCapabilities=CAP_SYS_TTY_CONFIG CAP_SYS_ADMIN",
-    "CapabilityBoundingSet=CAP_SYS_TTY_CONFIG CAP_SYS_ADMIN",
-  ].join("\\n");
+  const restartReplacement = "Restart=on-abnormal";
   const sedRestartStr = `s/${restartToReplace}/${restartReplacement}/g`;
 
   await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} -e ${sedRestartStr} ${tmpDir}/x86/init/*.service`;
