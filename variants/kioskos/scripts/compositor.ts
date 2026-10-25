@@ -92,6 +92,6 @@ session        required        pam_systemd.so
   await $`systemd-sysusers`;
   await $`systemd-tmpfiles --create`;
 
-  await $`systemctl enable cage@tty1.service`;
+  await $`systemctl enable cage@.service`;
   await $`systemctl set-default graphical.target`;
 }
