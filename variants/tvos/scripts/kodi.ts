@@ -15,15 +15,19 @@ async function installKodiStandaloneService() {
   const pathReplacement = "/usr/bin/kodi".replaceAll("/", "\\/");
   const sedPathStr = `s/${pathToReplace}/${pathReplacement}/g`;
 
-  const strToReplace = "Alias=display-manager.service";
-  const strReplacement = [
+  const wantedByToReplace = "Alias=display-manager.service";
+  const wantedByReplacement = [
     "WantedBy=multi-user.target",
     "Alias=display-manager.service",
   ].join("\\n");
-  const sedWantedByStr = `s/${strToReplace}/${strReplacement}/g`;
+  const sedWantedByStr = `s/${wantedByToReplace}/${wantedByReplacement}/g`;
 
-  await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} ${tmpDir}/x86/init/*.service`;
-  await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} ${tmpDir}/arm/init/*.service`;
+  const restartToReplace = "Restart=always";
+  const restartReplacement = "Restart=on-abnormal";
+  const sedRestartStr = `s/${restartToReplace}/${restartReplacement}/g`;
+
+  await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} -e ${sedRestartStr} ${tmpDir}/x86/init/*.service`;
+  await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} -e ${sedRestartStr} ${tmpDir}/arm/init/*.service`;
 
   await $`echo -e "\ng power -" >> ${tmpDir}/x86/init/sysusers.conf`;
   await $`echo -e "\ng power -" >> ${tmpDir}/arm/init/sysusers.conf`;
