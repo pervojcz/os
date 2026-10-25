@@ -12,6 +12,8 @@ async function installKodiStandaloneService() {
   const tmpDir = await tools.files.createTmpDir("kodi-standalone-service");
   await $`git clone ${gitUrl} ${tmpDir}`;
 
+  await $`ls ${tmpDir}`;
+
   const pathToReplace = "/usr/lib/kodi/kodi.bin".replaceAll("/", "\\/");
   const pathReplacement = "/usr/bin/kodi".replaceAll("/", "\\/");
   const sedStr = `s/${pathToReplace}/${pathReplacement}/g`;
