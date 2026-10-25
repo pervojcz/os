@@ -25,6 +25,9 @@ async function installKodiStandaloneService() {
   await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} ${tmpDir}/x86/init/*.service`;
   await $`sed -i -e ${sedPathStr} -e ${sedWantedByStr} ${tmpDir}/arm/init/*.service`;
 
+  await $`echo -e "\ng power -" >> ${tmpDir}/x86/init/sysusers.conf`;
+  await $`echo -e "\ng power -" >> ${tmpDir}/arm/init/sysusers.conf`;
+
   await tools.packages.installPackages("make");
   await $`make install -C ${tmpDir}`;
 
