@@ -1,4 +1,5 @@
 import * as download from "./download";
+import * as dracut from "./dracut";
 import * as environment from "./environment";
 import * as fedora from "./fedora";
 import * as files from "./files";
@@ -13,6 +14,7 @@ import * as utils from "./utils";
 
 const tools = {
   download,
+  dracut,
   environment,
   fedora,
   files,

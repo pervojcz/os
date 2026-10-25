@@ -1,10 +1,10 @@
 import circleVariant from "./circle/variant";
-import tvVariant from "./tv/variant";
+import tvOsVariant from "./tvos/variant";
 import vpsOsVariant from "./vpsos/variant";
 
 const variants = {
   circle: circleVariant,
-  tv: tvVariant,
+  tvos: tvOsVariant,
   vpsos: vpsOsVariant,
 };
 
