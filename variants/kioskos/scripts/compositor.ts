@@ -3,30 +3,70 @@ import { writeFile } from "node:fs/promises";
 import tools from "~/tools";
 
 export async function setupCompositor() {
-  const defaultCommand = "/usr/bin/gtk4-widget-factory";
+  await tools.packages.installPackages("cage", "gtk4", "gjs");
 
-  await tools.packages.installPackages(
-    "cage",
-    "gtk4-devel-tools", // temporarily installed to run gtk4-widget-factory
+  const defaultScriptPath = "/usr/bin/kiosk-launcher";
+  await writeFile(
+    defaultScriptPath,
+    `
+    #!/usr/bin/env gjs
+
+import GObject from "gi://GObject";
+import Gtk from "gi://Gtk?version=4.0";
+
+class App extends Gtk.Application {
+  static {
+    GObject.registerClass(this);
+  }
+
+  constructor() {
+    super({ "application-id": "org.example.kioskapp" });
+  }
+
+  vfunc_activate() {
+    const window = new Gtk.ApplicationWindow({ application: this });
+    window.decorated = false;
+    window.fullscreened = true;
+
+    const label = new Gtk.Label({ label: "Hello World!" });
+    window.child = label;
+
+    window.present();
+  }
+}
+
+new App().run([]);
+`.trim(),
   );
+  await $`chmod +x ${defaultScriptPath}`;
 
   // https://github.com/graysky2/kodi-standalone-service/blob/master/x86/init/tmpfiles.conf
-  const tmpfilesContent = `
+  await writeFile(
+    "/usr/lib/tmpfiles.d/cage.conf",
+    `
 # Type Path Mode User Group Age Argument
 d /var/lib/cage 0750 cage cage - -
 Z /var/lib/cage - cage cage - -
-`.trim();
+`.trim(),
+  );
+  await $`systemd-tmpfiles --create`;
 
   // https://github.com/graysky2/kodi-standalone-service/blob/master/x86/init/sysusers.conf
-  const sysusersContent = `
-# override these settings by copying this to /etc/sysusers.d/ and modifying it therein
+  await writeFile(
+    "/usr/lib/sysusers.d/cage.conf",
+    `
+    # override these settings by copying this to /etc/sysusers.d/ and modifying it therein
 
-# Type Name ID GECOS Home directory Shell
-u cage - "Cage User" /var/lib/cage
-`.trim();
+    # Type Name ID GECOS Home directory Shell
+    u cage - "Cage User" /var/lib/cage
+    `.trim(),
+  );
+  await $`systemd-sysusers`;
 
   // https://github.com/cage-kiosk/cage/wiki/Starting-Cage-on-boot-with-systemd
-  const serviceContent = `
+  await writeFile(
+    "/usr/lib/systemd/system/cage@.service",
+    `
 # This is a system unit for launching Cage with auto-login as the
 # user configured here. For this to work, wlroots must be built
 # with systemd logind support.
@@ -51,7 +91,7 @@ After=getty@%i.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/cage -s -- ${defaultCommand}
+ExecStart=/usr/bin/cage -s -- ${defaultScriptPath}
 ExecStartPost=+sh -c "tty_name='%i'; exec chvt $\${tty_name#tty}"
 Restart=always
 User=cage
@@ -74,23 +114,19 @@ PAMName=cage
 WantedBy=graphical.target
 #Alias=display-manager.service
 DefaultInstance=tty7
-`.trim();
+`.trim(),
+  );
 
   // https://github.com/cage-kiosk/cage/wiki/Starting-Cage-on-boot-with-systemd
-  const pamContent = `
+  await writeFile(
+    "/usr/lib/pam.d/cage",
+    `
 auth           required        pam_unix.so nullok
 account        required        pam_unix.so
 session        required        pam_unix.so
 session        required        pam_systemd.so
-`.trim();
-
-  await writeFile("/usr/lib/tmpfiles.d/cage.conf", tmpfilesContent);
-  await writeFile("/usr/lib/sysusers.d/cage.conf", sysusersContent);
-  await writeFile("/usr/lib/systemd/system/cage@.service", serviceContent);
-  await writeFile("/usr/lib/pam.d/cage", pamContent);
-
-  await $`systemd-sysusers`;
-  await $`systemd-tmpfiles --create`;
+`.trim(),
+  );
 
   await $`systemctl enable cage@.service`;
   await $`systemctl set-default graphical.target`;
