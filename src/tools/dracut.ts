@@ -7,7 +7,7 @@ export async function rebuildInitramfs() {
   const initramfsPath = join("/usr/lib/modules", r, "initramfs.img");
 
   await $`mkdir -p /var/roothome`;
-  await $`dracut --no-hostonly --kver ${r} --reproducible -v --add ostree -f ${initramfsPath}`.env(
+  await $`dracut --no-hostonly --kver ${r} --reproducible -v --add ostree --strip --compress "zstd -19 -T0" -f ${initramfsPath}`.env(
     { ...process.env, DRACUT_NO_XATTR: "1" },
   );
   await $`chmod 0600 ${initramfsPath}`;
