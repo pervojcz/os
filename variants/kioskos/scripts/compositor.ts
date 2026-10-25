@@ -86,8 +86,8 @@ session        required        pam_systemd.so
 
   await writeFile("/usr/lib/tmpfiles.d/cage.conf", tmpfilesContent);
   await writeFile("/usr/lib/sysusers.d/cage.conf", sysusersContent);
-  await writeFile("/etc/systemd/system/cage@.service", serviceContent);
-  await writeFile("/etc/pam.d/cage", pamContent);
+  await writeFile("/usr/lib/systemd/system/cage@.service", serviceContent);
+  await writeFile("/usr/lib/pam.d/cage", pamContent);
 
   await $`systemd-sysusers`;
   await $`systemd-tmpfiles --create`;
