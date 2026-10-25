@@ -8,25 +8,18 @@ export async function installKodi() {
 }
 
 async function installKodiStandaloneService() {
-  const tmpDir = await tools.files.createTmpDir("printer-drivers");
-  const zipPath = join(tmpDir, "kodi-standalone-service.zip");
-
-  await tools.download.downloadFile(
-    "https://github.com/graysky2/kodi-standalone-service/archive/refs/heads/master.zip",
-    zipPath,
-  );
-  await $`unzip -o ${zipPath} -d ${tmpDir}`;
-
-  const projectDir = join(tmpDir, "kodi-standalone-service-master");
+  const gitUrl = "https://github.com/graysky2/kodi-standalone-service.git";
+  const tmpDir = await tools.files.createTmpDir("kodi-standalone-service");
+  await $`git clone ${gitUrl} ${tmpDir}`;
 
   const pathToReplace = "/usr/lib/kodi/kodi.bin".replaceAll("/", "\\/");
   const pathReplacement = "/usr/bin/kodi".replaceAll("/", "\\/");
   const sedStr = `s/${pathToReplace}/${pathReplacement}/g`;
 
-  await $`sed -i ${sedStr} ${join(projectDir, "x86", "init", "*.service")}`;
-  await $`sed -i ${sedStr} ${join(projectDir, "arm", "init", "*.service")}`;
+  await $`sed -i ${sedStr} ${join(tmpDir, "x86", "init", "*.service")}`;
+  await $`sed -i ${sedStr} ${join(tmpDir, "arm", "init", "*.service")}`;
 
-  await $`make install -C ${projectDir}`;
+  await $`make install -C ${tmpDir}`;
 
   await $`systemd-sysusers`;
   await $`systemd-tmpfiles --create`;
