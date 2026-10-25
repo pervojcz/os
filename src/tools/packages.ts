@@ -44,5 +44,5 @@ export async function downloadPackages(...packages: string[]) {
 
 export async function extractPackage(packagePath: string, outputDir: string) {
   console.log("Extracting package:", packagePath, "->", outputDir);
-  await $`rpm2cpio ${packagePath} | cpio -idmv -D ${outputDir}`;
+  await $`rpm2cpio ${packagePath} | cpio -idm -D ${outputDir}`;
 }
