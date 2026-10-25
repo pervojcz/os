@@ -1,5 +1,5 @@
 import { defineVariant } from "~/define-variant";
-import runSharedScripts from "../_shared";
+import runSharedScriptsGraphical from "../_shared/graphical";
 import { installAuthFace } from "./scripts/authface";
 import { setupBitwardenPolkitPolicy } from "./scripts/bitwarden";
 import { installCursor } from "./scripts/cursor";
@@ -22,7 +22,7 @@ const circleVariant = defineVariant({
   },
   baseImage: "ghcr.io/ublue-os/silverblue-nvidia:44",
   builder: async () => {
-    await runSharedScripts();
+    await runSharedScriptsGraphical();
 
     await installVirtualizationPackages();
 
