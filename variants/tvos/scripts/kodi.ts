@@ -38,5 +38,7 @@ async function installKodiStandaloneService() {
   await $`systemd-sysusers`;
   await $`systemd-tmpfiles --create`;
 
-  await $`systemctl enable kodi-gbm.service`;
+  await $`mkdir -p /usr/lib/systemd/system/multi-user.target.wants`;
+  await $`ln -sfn ../kodi-gbm.service /usr/lib/systemd/system/multi-user.target.wants/kodi-gbm.service`;
+  await $`ln -sfn kodi-gbm.service /usr/lib/systemd/system/display-manager.service`;
 }
