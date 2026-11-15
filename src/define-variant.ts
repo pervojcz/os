@@ -14,3 +14,5 @@ export const defineVariant = (
     builder: () => Promise<void>;
   },
 ) => config;
+
+export type Variant = ReturnType<typeof defineVariant>;

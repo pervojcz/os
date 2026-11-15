@@ -2,15 +2,14 @@ import type { VariantConfig } from "~/define-variant";
 import tools from "~/tools";
 import variants from "../../variants/variants";
 
-export async function runBuilder(variantName: string, nvidia: boolean) {
-  if (!(variantName in variants)) {
-    console.error(`Variant ${variantName} not found`);
+export async function runBuilder(args: { variant?: string; nvidia?: boolean }) {
+  const variant = variants.get(args.variant);
+  if (!variant) {
+    console.error(`Variant ${args.variant} not found`);
     process.exit(1);
   }
 
-  const variant = variants[variantName as keyof typeof variants];
-
-  if (nvidia) return installNvidiaDrivers(variant);
+  if (args.nvidia) return installNvidiaDrivers(variant);
 
   console.info(`Running builder for variant ${variant.name}...`);
   await variant.builder();

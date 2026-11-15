@@ -7,6 +7,11 @@ const parser = new ArgumentParser({
   description: "OS builder tool for bootc images",
 });
 
+parser.add_argument("-n", "--nvidia", {
+  help: "install NVIDIA drivers for the variant",
+  action: "store_true",
+});
+
 const subparsers = parser.add_subparsers({
   title: "subcommands",
   dest: "subcommand",
@@ -25,11 +30,6 @@ runBuilderParser.add_argument("variant", {
   help: "the variant to build",
 });
 
-runBuilderParser.add_argument("--nvidia", {
-  help: "install NVIDIA drivers for the variant",
-  action: "store_true",
-});
-
 const containerfileParser = subparsers.add_parser("generate-containerfile", {
   help: "generate a containerfile for a specific variant",
 });
@@ -43,17 +43,22 @@ containerfileParser.add_argument("-r", "--image-registry", {
   nargs: "?",
 });
 
+containerfileParser.add_argument("-d", "--image-digest", {
+  help: "the digest of the built image to base nvidia version of",
+  nargs: "?",
+});
+
 const args = parser.parse_args();
 
 switch (args.subcommand) {
   case "list-variants":
-    await listVariants();
+    await listVariants(args);
     break;
   case "run-builder":
-    await runBuilder(args.variant, args.nvidia);
+    await runBuilder(args);
     break;
   case "generate-containerfile":
-    await generateContainerfile(args.variant, args.image_registry);
+    await generateContainerfile(args);
     break;
   default:
     parser.print_help();

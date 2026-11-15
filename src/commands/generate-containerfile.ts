@@ -1,47 +1,114 @@
 import type { VariantConfig } from "~/define-variant";
 import { getGitHubVariables } from "~/utils/get-github-variables";
-import { assertBootableImage } from "~/utils/labels";
+import {
+  assertBootableImage,
+  getImageVersions,
+  getLabels,
+} from "~/utils/labels";
 import variants from "../../variants/variants";
 
 const osProjectName = "circle-os";
+const imageNamePrefix = "os";
 
-export async function generateContainerfile(
-  variantName: string,
-  imageRegistry?: string,
-) {
-  if (!(variantName in variants)) {
-    console.error(`Variant ${variantName} not found`);
+/*
+ * # NOTES:
+ * - /var/lib/alternatives is required to prevent failure with some RPM installs
+ * - All RUN commands must end with ostree container commit
+ *   see: https://coreos.github.io/rpm-ostree/container/#using-ostree-container-commit
+ */
+
+export async function generateContainerfile(args: {
+  variant?: string;
+  image_registry?: string;
+  image_digest?: string;
+  nvidia?: boolean;
+}) {
+  const variant = variants.get(args.variant);
+  if (!variant) {
+    console.error(`Variant ${args.variant} not found`);
     process.exit(1);
   }
 
-  const variant = variants[variantName as keyof typeof variants];
+  const imageLabels = await getLabels(variant.baseImage);
+  await assertBootableImage(variant.baseImage, imageLabels);
+  const versions = await getImageVersions(variant.baseImage, imageLabels);
 
-  await assertBootableImage(variant.baseImage);
-  //await getImageKernelVersion(variant.baseImage);
+  const containerfile = [
+    getOsBuilderPart(),
+    args.nvidia
+      ? getNvidiaDriversPart(
+          variant,
+          args.image_registry,
+          args.image_digest,
+          versions.image,
+        )
+      : getMainImagePart(variant, args.image_registry),
+  ].join("\n\n");
 
-  const osBuilderPath = "/tmp/osbuilder";
+  console.log(containerfile);
+}
 
-  const containerfile = `
+function getNvidiaDriversPart(
+  variant: VariantConfig,
+  imageRegistry?: string,
+  imageDigest?: string,
+  imageVersion?: string,
+) {
+  if (!imageRegistry || !imageDigest) {
+    console.error(
+      "Image registry and digest are required for NVIDIA drivers installation",
+    );
+    process.exit(1);
+  }
+
+  if (!imageVersion) {
+    console.error("Base image needs to have a version label set");
+    process.exit(1);
+  }
+
+  const majorVersion = imageVersion.split(".")[0];
+
+  return `
+FROM ghcr.io/ublue-os/akmods-nvidia-open:main-${majorVersion} AS nvidia-akmods
+FROM ${imageRegistry}/${imageNamePrefix}-${variant.name}@${imageDigest}
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
+    --mount=type=cache,target=/var/cache \\
+    --mount=type=cache,target=/var/log \\
+    --mount=type=tmpfs,target=/tmp \\
+    --mount=type=bind,from=nvidia-akmods,source=/rpms,target=/tmp/akmods-rpms \\
+    set -ouex pipefail; \\
+    mkdir -p /var/lib/alternatives; \\
+    /ctx/osbuilder --nvidia run-builder ${variant.name}; \\
+    ostree container commit;
+`.trim();
+}
+
+function getMainImagePart(variant: VariantConfig, imageRegistry?: string) {
+  return `
 FROM ${variant.baseImage}
 
-${getLabels(variant)}
+${getLabelsPart(variant)}
 
-COPY ./dist/osbuilder ${osBuilderPath}
-RUN set -ouex pipefail; \\
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
+    --mount=type=cache,target=/var/cache \\
+    --mount=type=cache,target=/var/log \\
+    --mount=type=tmpfs,target=/tmp \\
+    set -ouex pipefail; \\
     mkdir -p /var/lib/alternatives; \\
-    ${osBuilderPath} run-builder ${variantName}; \\
-    rm -f ${osBuilderPath}; \\
+    /ctx/osbuilder run-builder ${variant.name}; \\
     ostree container commit;
 
 ${getCosignKeyPart(imageRegistry)}
-
-## NOTES:
-# - /var/lib/alternatives is required to prevent failure with some RPM installs
-# - All RUN commands must end with ostree container commit
-#   see: https://coreos.github.io/rpm-ostree/container/#using-ostree-container-commit
 `.trim();
+}
 
-  console.log(containerfile);
+function getOsBuilderPart() {
+  return `
+FROM scratch AS ctx
+COPY ./dist /
+RUN chmod +x /osbuilder
+`.trim();
 }
 
 function getCosignKeyPart(imageRegistry?: string) {
@@ -74,7 +141,7 @@ RUN set -ouex pipefail; \\
 `.trim();
 }
 
-function getLabels(variant: VariantConfig) {
+function getLabelsPart(variant: VariantConfig) {
   const labels = new Map<string, string>();
   const gh = getGitHubVariables();
 
