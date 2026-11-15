@@ -18,7 +18,8 @@ const circleVariant = defineVariant({
     title: "Circle OS",
     description: "Personal OS image based on Fedora Silverblue",
   },
-  baseImage: "ghcr.io/ublue-os/silverblue-nvidia:44",
+  baseImage: "ghcr.io/ublue-os/silverblue-main:latest",
+  nvidia: true,
   builder: async () => {
     await runSharedScriptsGraphical();
 
