@@ -107,7 +107,6 @@ function getOsBuilderPart() {
   return `
 FROM scratch AS ctx
 COPY ./dist /
-RUN chmod +x /osbuilder
 `.trim();
 }
 
