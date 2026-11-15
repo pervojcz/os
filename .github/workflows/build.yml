@@ -53,10 +53,10 @@ jobs:
         id: json
         run: |
           output=$(dist/osbuilder list-variants)
-          echo "variants='$output'" >> $GITHUB_OUTPUT
+          echo "variants=$output" >> $GITHUB_OUTPUT
 
           output=$(dist/osbuilder -n list-variants)
-          echo "nvidiaVariants='$output'" >> $GITHUB_OUTPUT
+          echo "nvidiaVariants=$output" >> $GITHUB_OUTPUT
 
   build:
     name: Build and push image
