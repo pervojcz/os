@@ -1,13 +1,15 @@
 import { $ } from "bun";
 
+type Labels = Record<string, string | undefined>;
+
 export async function getLabels(baseImage: string) {
   const manifest = await $`skopeo inspect docker://${baseImage}`.json();
-  return manifest.Labels ?? ({} as Record<string, string>);
+  return (manifest.Labels ?? {}) as Labels;
 }
 
 export async function assertBootableImage(
   baseImage: string,
-  defaultLabels?: Record<string, string>,
+  defaultLabels?: Labels,
 ) {
   const labels = defaultLabels ?? (await getLabels(baseImage));
 
@@ -25,10 +27,13 @@ export async function assertBootableImage(
   }
 }
 
-export async function getImageKernelVersion(
+export async function getImageVersions(
   baseImage: string,
-  defaultLabels?: Record<string, string>,
+  defaultLabels?: Labels,
 ) {
   const labels = defaultLabels ?? (await getLabels(baseImage));
-  return labels["ostree.linux"] ?? null;
+  return {
+    image: labels["org.opencontainers.image.version"],
+    kernel: labels["ostree.linux"],
+  };
 }

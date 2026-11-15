@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: "${{ github.event.repository.name }}"
+  IMAGE_PREFIX: "${{ github.event.repository.name }}"
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
   GH_REPO: "${{ github.repository }}"
   GH_REF_TYPE: "${{ github.ref_type }}"
@@ -28,6 +28,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       variants: ${{ steps.json.outputs.variants }}
+      nvidiaVariants: ${{ steps.json.outputs.nvidiaVariants }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -53,6 +54,9 @@ jobs:
         run: |
           output=$(dist/osbuilder list-variants)
           echo "variants=$output" >> $GITHUB_OUTPUT
+
+          output=$(dist/osbuilder -n list-variants)
+          echo "nvidiaVariants=$output" >> $GITHUB_OUTPUT
 
   build:
     name: Build and push image
@@ -81,31 +85,22 @@ jobs:
       - name: Make script executable
         run: chmod +x dist/osbuilder
 
-      - name: Generate Containerfile
-        id: containerfile
-        run: |
-          containerfile_path="Containerfile.${{ matrix.variant }}"
-          dist/osbuilder generate-containerfile ${{ matrix.variant }} -r ${{ env.IMAGE_REGISTRY }} > "$containerfile_path"
-          echo "containerfile=$containerfile_path" >> $GITHUB_OUTPUT
-
-      - name: Generate image tags
+      - name: Generate base image tags
         id: tags
         run: |
-          image_path="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.variant }}"
-
           tags=""
 
           if [[ -z "${{ env.GH_PR }}" ]]; then
-            tags="${tags}\n${image_path}:latest"
+            tags="${tags}\nlatest"
           else
-            tags="${tags}\n${image_path}:pr-${{ env.GH_PR }}"
+            tags="${tags}\npr-${{ env.GH_PR }}"
           fi
 
           if [[ "${{ env.GH_REF_TYPE }}" == "tag" ]]; then
-            tags="${tags}\n${image_path}:${{ env.GH_REF_NAME }}"
+            tags="${tags}\n${{ env.GH_REF_NAME }}"
           fi
 
-          echo "tags=\"$tags\"" >> $GITHUB_OUTPUT
+          echo "tags=$tags" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -117,14 +112,60 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Build and push image
-        id: build
+      - name: Generate main image Containerfile
+        id: containerfile-main
+        run: |
+          containerfile_path="Containerfile.${{ matrix.variant }}"
+          dist/osbuilder generate-containerfile ${{ matrix.variant }} -r ${{ env.IMAGE_REGISTRY }} > "$containerfile_path"
+          echo "containerfile=$containerfile_path" >> $GITHUB_OUTPUT
+
+      - name: Generate main image tags
+        id: tags-main
+        env:
+          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
+          BASE_TAGS: ${{ steps.tags.outputs.tags }}
+        run: |
+          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ",")
+          echo "tags=$tags" >> $GITHUB_OUTPUT
+
+      - name: Build and push main image
+        id: build-main
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ${{ steps.containerfile.outputs.containerfile }}
+          file: ${{ steps.containerfile-main.outputs.containerfile }}
           push: true
-          tags: ${{ fromJSON(steps.tags.outputs.tags) }}
+          tags: ${{ steps.tags-main.outputs.tags }}
+
+      - name: Generate Containerfile for image with NVIDIA drivers
+        if: ${{ contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
+        id: containerfile-nvidia
+        env:
+          DIGEST: ${{ steps.build-main.outputs.digest }}
+        run: |
+          containerfile_path="Containerfile.${{ matrix.variant }}-nvidia"
+          dist/osbuilder -n generate-containerfile ${{ matrix.variant }} -r ${{ env.IMAGE_REGISTRY }} -d ${{ env.DIGEST }} > "$containerfile_path"
+          echo "containerfile=$containerfile_path" >> $GITHUB_OUTPUT
+
+      - name: Generate tags for image with NVIDIA drivers
+        if: ${{ contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
+        id: tags-nvidia
+        env:
+          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}-nvidia"
+          BASE_TAGS: ${{ steps.tags.outputs.tags }}
+        run: |
+          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ",")
+          echo "tags=$tags" >> $GITHUB_OUTPUT
+
+      - name: Build and push image with NVIDIA drivers
+        if: ${{ contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
+        id: build-nvidia
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ steps.containerfile-nvidia.outputs.containerfile }}
+          push: true
+          tags: ${{ steps.tags-nvidia.outputs.tags }}
 
       - name: Install Cosign
         if: github.event_name != 'pull_request'
@@ -133,14 +174,20 @@ jobs:
           # Pin for bootc / containers-image sigstore attachment compatibility
           cosign-release: v2.6.3
 
-      - name: Sign image
+      - name: Sign main image
         if: github.event_name != 'pull_request'
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
+          DIGEST: ${{ steps.build-main.outputs.digest }}
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         run: |
-          set -euo pipefail
-          image_registry="${IMAGE_REGISTRY,,}"
-          image_name="${IMAGE_NAME,,}"
-          cosign sign -y --recursive --key env://COSIGN_PRIVATE_KEY \
-            "${image_registry}/${image_name}-${{ matrix.variant }}@${DIGEST}"
+          cosign sign -y --recursive --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_PATH }}@${DIGEST}"
+
+      - name: Sign image with NVIDIA drivers
+        if: ${{ github.event_name != 'pull_request' && contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
+        env:
+          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}-nvidia"
+          DIGEST: ${{ steps.build-nvidia.outputs.digest }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+        run: |
+          cosign sign -y --recursive --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_PATH }}@${DIGEST}"
