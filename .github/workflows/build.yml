@@ -100,8 +100,7 @@ jobs:
             tags="${tags}\n${{ env.GH_REF_NAME }}"
           fi
 
-          tags=$(echo -e "$tags" | grep ".")
-          echo "tags=\"$tags\"" >> $GITHUB_OUTPUT
+          echo "tags=$tags" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -126,7 +125,7 @@ jobs:
           IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
           BASE_TAGS: ${{ fromJSON(steps.tags.outputs.tags) }}
         run: |
-          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}')
+          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ";" | sed "s/;/\\\n/g")
           echo "tags=\"$tags\"" >> $GITHUB_OUTPUT
 
       - name: Build and push main image
@@ -136,7 +135,7 @@ jobs:
           context: .
           file: ${{ steps.containerfile-main.outputs.containerfile }}
           push: true
-          tags: ${{ steps.tags-main.outputs.tags }}
+          tags: ${{ fromJSON(steps.tags-main.outputs.tags) }}
 
       - name: Generate Containerfile for image with NVIDIA drivers
         if: ${{ contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
@@ -155,7 +154,7 @@ jobs:
           IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}-nvidia"
           BASE_TAGS: ${{ fromJSON(steps.tags.outputs.tags) }}
         run: |
-          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}')
+          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ";" | sed "s/;/\\\n/g")
           echo "tags=\"$tags\"" >> $GITHUB_OUTPUT
 
       - name: Build and push image with NVIDIA drivers
@@ -166,7 +165,7 @@ jobs:
           context: .
           file: ${{ steps.containerfile-nvidia.outputs.containerfile }}
           push: true
-          tags: ${{ steps.tags-nvidia.outputs.tags }}
+          tags: ${{ fromJSON(steps.tags-nvidia.outputs.tags) }}
 
       - name: Install Cosign
         if: github.event_name != 'pull_request'
