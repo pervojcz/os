@@ -79,8 +79,9 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
     --mount=type=bind,from=nvidia-akmods,source=/rpms,target=/tmp/akmods-rpms \\
     set -ouex pipefail; \\
     mkdir -p /var/lib/alternatives; \\
-    /ctx/osbuilder --nvidia run-builder ${variant.name}; \\
-    ostree container commit;
+    /ctx/osbuilder --nvidia run-builder ${variant.name};
+
+RUN bootc container lint
 `.trim();
 }
 
@@ -96,8 +97,9 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
     --mount=type=tmpfs,target=/tmp \\
     set -ouex pipefail; \\
     mkdir -p /var/lib/alternatives; \\
-    /ctx/osbuilder run-builder ${variant.name}; \\
-    ostree container commit;
+    /ctx/osbuilder run-builder ${variant.name};
+
+RUN bootc container lint
 
 ${getCosignKeyPart(imageRegistry)}
 `.trim();
