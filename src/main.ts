@@ -25,6 +25,11 @@ runBuilderParser.add_argument("variant", {
   help: "the variant to build",
 });
 
+runBuilderParser.add_argument("--nvidia", {
+  help: "install NVIDIA drivers for the variant",
+  action: "store_true",
+});
+
 const containerfileParser = subparsers.add_parser("generate-containerfile", {
   help: "generate a containerfile for a specific variant",
 });
@@ -45,7 +50,7 @@ switch (args.subcommand) {
     await listVariants();
     break;
   case "run-builder":
-    await runBuilder(args.variant);
+    await runBuilder(args.variant, args.nvidia);
     break;
   case "generate-containerfile":
     await generateContainerfile(args.variant, args.image_registry);

@@ -6,6 +6,7 @@ export type VariantConfig = {
     description?: string;
     icon?: string;
   };
+  nvidia?: boolean;
 };
 
 export const defineVariant = (
