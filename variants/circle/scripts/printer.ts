@@ -32,6 +32,7 @@ export async function installPrinterDrivers() {
     scannerDriverRpm,
   );
 
-  // the vendor RPM has no embedded digest, so DNF and rpm-ostree reject it
-  await $`rpm --install --nodigest ${scannerDriverRpm}`;
+  // the vendor RPM has no digest or signature, so DNF/rpm-ostree and plain
+  // rpm install reject it unless both checks are skipped
+  await $`rpm --install --nodigest --nosignature ${scannerDriverRpm}`;
 }
