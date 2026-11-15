@@ -123,7 +123,7 @@ jobs:
         id: tags-main
         env:
           IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
-          BASE_TAGS: ${{ fromJSON(steps.tags.outputs.tags) }}
+          BASE_TAGS: ${{ steps.tags.outputs.tags }}
         run: |
           tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ",")
           echo "tags=$tags" >> $GITHUB_OUTPUT
@@ -152,7 +152,7 @@ jobs:
         id: tags-nvidia
         env:
           IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}-nvidia"
-          BASE_TAGS: ${{ fromJSON(steps.tags.outputs.tags) }}
+          BASE_TAGS: ${{ steps.tags.outputs.tags }}
         run: |
           tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ",")
           echo "tags=$tags" >> $GITHUB_OUTPUT
