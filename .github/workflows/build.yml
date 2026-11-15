@@ -186,8 +186,8 @@ jobs:
       - name: Sign image with NVIDIA drivers
         if: ${{ github.event_name != 'pull_request' && contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
         env:
-          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
-          DIGEST: ${{ steps.build-main.outputs.digest }}
+          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}-nvidia"
+          DIGEST: ${{ steps.build-nvidia.outputs.digest }}
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         run: |
           cosign sign -y --recursive --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_PATH }}@${DIGEST}"
