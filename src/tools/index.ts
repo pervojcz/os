@@ -8,6 +8,7 @@ import * as git from "./git";
 import * as github from "./github";
 import * as gschema from "./gschema";
 import * as oras from "./oras";
+import * as osrelease from "./osrelease";
 import * as packages from "./packages";
 import * as repos from "./repos";
 import * as utils from "./utils";
@@ -23,6 +24,7 @@ const tools = {
   github,
   gschema,
   oras,
+  osrelease,
   packages,
   repos,
   utils,
