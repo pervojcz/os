@@ -13,8 +13,6 @@ const imageNamePrefix = "os";
 /*
  * # NOTES:
  * - /var/lib/alternatives is required to prevent failure with some RPM installs
- * - All RUN commands must end with ostree container commit
- *   see: https://coreos.github.io/rpm-ostree/container/#using-ostree-container-commit
  */
 
 export async function generateContainerfile(args: {
@@ -74,9 +72,9 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
     mkdir -p /var/lib/alternatives; \\
     /ctx/osbuilder run-builder ${variant.name};
 
-RUN bootc container lint
-
 ${getCosignKeyPart(imageRegistry)}
+
+RUN bootc container lint
 `.trim();
 }
 
@@ -156,8 +154,7 @@ RUN set -ouex pipefail; \\
       'docker:' \\
       '  ${imageRegistry}:' \\
       '    use-sigstore-attachments: true' \\
-      > /etc/containers/registries.d/${osProjectName}.yaml; \\
-    ostree container commit;
+      > /etc/containers/registries.d/${osProjectName}.yaml;
 `.trim();
 }
 
