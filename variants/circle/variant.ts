@@ -1,6 +1,5 @@
 import { defineVariant } from "~/define-variant";
 import runSharedScriptsGraphical from "../_shared/graphical";
-import { installAuthFace } from "./scripts/authface";
 import { setupBitwardenPolkitPolicy } from "./scripts/bitwarden";
 import { installFonts } from "./scripts/fonts";
 import { installGhostty } from "./scripts/ghostty";
@@ -37,7 +36,6 @@ const circleVariant = defineVariant({
     await installVscode();
 
     await setupBitwardenPolkitPolicy();
-    await installAuthFace();
     await installVicinae();
   },
 });
