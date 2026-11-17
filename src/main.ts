@@ -1,5 +1,6 @@
 import { ArgumentParser } from "argparse";
 import { generateContainerfile } from "./commands/generate-containerfile";
+import { getBaseImage } from "./commands/get-base-image";
 import { listVariants } from "./commands/list-variants";
 import { runBuilder } from "./commands/run-builder";
 
@@ -20,6 +21,14 @@ const subparsers = parser.add_subparsers({
 
 subparsers.add_parser("list-variants", {
   help: "list all available variants",
+});
+
+const getBaseImageParser = subparsers.add_parser("get-base-image", {
+  help: "get the base image for a specific variant",
+});
+
+getBaseImageParser.add_argument("variant", {
+  help: "the variant to get the base image for",
 });
 
 const runBuilderParser = subparsers.add_parser("run-builder", {
@@ -53,6 +62,9 @@ const args = parser.parse_args();
 switch (args.subcommand) {
   case "list-variants":
     await listVariants(args);
+    break;
+  case "get-base-image":
+    await getBaseImage(args);
     break;
   case "run-builder":
     await runBuilder(args);
