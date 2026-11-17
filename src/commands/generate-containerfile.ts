@@ -33,6 +33,11 @@ export async function generateContainerfile(args: {
   await assertBootableImage(variant.baseImage, imageLabels);
   const versions = await getImageVersions(variant.baseImage, imageLabels);
 
+  // unique per image so main + nvidia builds in the same workspace don't collide
+  const chunkahOut = args.nvidia
+    ? `out-${variant.name}-nvidia`
+    : `out-${variant.name}`;
+
   const containerfile = [
     getOsBuilderPart(),
     args.nvidia
@@ -43,7 +48,7 @@ export async function generateContainerfile(args: {
           versions.image,
         )
       : getMainImagePart(variant, args.image_registry),
-    getChunkahPart(),
+    getChunkahPart(chunkahOut),
     getLabelsPart(variant),
   ].join("\n\n");
 
@@ -112,7 +117,7 @@ RUN bootc container lint
 `.trim();
 }
 
-function getChunkahPart() {
+function getChunkahPart(outDir: string) {
   return `
 FROM quay.io/coreos/chunkah AS chunkah
 ARG CHUNKAH_CONFIG_STR
@@ -120,9 +125,9 @@ RUN --mount=from=builder,src=/,target=/chunkah,ro \\
     --mount=type=bind,target=/run/src,rw \\
     chunkah build --prune /sysroot/ --max-layers 128 \\
       --label ostree.commit- --label ostree.final-diffid- \\
-      --output oci:/run/src/out
+      --output oci:/run/src/${outDir}
 
-FROM oci:out
+FROM oci:${outDir}
 `.trim();
 }
 
