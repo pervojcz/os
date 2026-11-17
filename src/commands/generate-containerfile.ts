@@ -33,6 +33,11 @@ export async function generateContainerfile(args: {
   await assertBootableImage(variant.baseImage, imageLabels);
   const versions = await getImageVersions(variant.baseImage, imageLabels);
 
+  // unique per image so main + nvidia builds in the same workspace don't collide
+  const chunkahOut = args.nvidia
+    ? `out-${variant.name}-nvidia`
+    : `out-${variant.name}`;
+
   const containerfile = [
     getOsBuilderPart(),
     args.nvidia
@@ -43,9 +48,36 @@ export async function generateContainerfile(args: {
           versions.image,
         )
       : getMainImagePart(variant, args.image_registry),
+    getChunkahPart(chunkahOut),
+    getLabelsPart(variant),
   ].join("\n\n");
 
   console.log(containerfile);
+}
+
+function getOsBuilderPart() {
+  return `
+FROM scratch AS ctx
+COPY ./dist /
+`.trim();
+}
+
+function getMainImagePart(variant: VariantConfig, imageRegistry?: string) {
+  return `
+FROM ${variant.baseImage} AS builder
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
+    --mount=type=cache,target=/var/cache \\
+    --mount=type=cache,target=/var/log \\
+    --mount=type=tmpfs,target=/tmp \\
+    set -ouex pipefail; \\
+    mkdir -p /var/lib/alternatives; \\
+    /ctx/osbuilder run-builder ${variant.name};
+
+RUN bootc container lint
+
+${getCosignKeyPart(imageRegistry)}
+`.trim();
 }
 
 function getNvidiaDriversPart(
@@ -70,7 +102,7 @@ function getNvidiaDriversPart(
 
   return `
 FROM ghcr.io/ublue-os/akmods-nvidia-open:main-${majorVersion} AS nvidia-akmods
-FROM ${imageRegistry}/${imageNamePrefix}-${variant.name}@${imageDigest}
+FROM ${imageRegistry}/${imageNamePrefix}-${variant.name}@${imageDigest} AS builder
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
     --mount=type=cache,target=/var/cache \\
@@ -85,30 +117,17 @@ RUN bootc container lint
 `.trim();
 }
 
-function getMainImagePart(variant: VariantConfig, imageRegistry?: string) {
+function getChunkahPart(outDir: string) {
   return `
-FROM ${variant.baseImage}
+FROM quay.io/coreos/chunkah AS chunkah
+ARG CHUNKAH_CONFIG_STR
+RUN --mount=from=builder,src=/,target=/chunkah,ro \\
+    --mount=type=bind,target=/run/src,rw \\
+    chunkah build --prune /sysroot/ --max-layers 128 \\
+      --label ostree.commit- --label ostree.final-diffid- \\
+      --output oci:/run/src/${outDir}
 
-${getLabelsPart(variant)}
-
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
-    --mount=type=cache,target=/var/cache \\
-    --mount=type=cache,target=/var/log \\
-    --mount=type=tmpfs,target=/tmp \\
-    set -ouex pipefail; \\
-    mkdir -p /var/lib/alternatives; \\
-    /ctx/osbuilder run-builder ${variant.name};
-
-RUN bootc container lint
-
-${getCosignKeyPart(imageRegistry)}
-`.trim();
-}
-
-function getOsBuilderPart() {
-  return `
-FROM scratch AS ctx
-COPY ./dist /
+FROM oci:${outDir}
 `.trim();
 }
 

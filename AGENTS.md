@@ -61,10 +61,11 @@ This repository uses direct Bun/TS commands (not package scripts).
 
 ## CI Behavior Summary
 - `build.yml`
-  - computes variant matrix via `script/list-variants.ts`
-  - generates Containerfile via `script/generate-containerfile.ts`, then builds with `docker/build-push-action` on Blacksmith runners (no Docker layer cache; builds must pick up newer packages)
+  - computes variant matrix via `osbuilder list-variants` (and `-n` for NVIDIA variants)
+  - generates Containerfile via `osbuilder generate-containerfile`, then builds with **buildah** (not Docker Buildx) because the final stage uses chunkah’s `FROM oci:out`
+  - buildah must use `--skip-unused-stages=false` and `--build-arg CHUNKAH_CONFIG_STR` (from `podman inspect` of the builder base) so bootc labels survive rechunking
   - when `IMAGE_REGISTRY` is set, the generated Containerfile installs Cosign trust
-    (`/etc/pki/containers/os.pub`, merges `policy.json`, writes `registries.d`)
+    (`/etc/pki/containers/circle-os.pub`, merges `policy.json`, writes `registries.d`)
   - non-PR builds sign the pushed image digest with Cosign v2.6.3 using `SIGNING_SECRET`
 - `iso.yml`
   - requires a previously signed GHCR image for the requested tag (`latest` or git tag)

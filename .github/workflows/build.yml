@@ -85,6 +85,22 @@ jobs:
       - name: Make script executable
         run: chmod +x dist/osbuilder
 
+      - name: Install Cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@v3
+        with:
+          # Pin for bootc / containers-image sigstore attachment compatibility
+          cosign-release: v2.6.3
+
+      - name: Pull and inspect base image
+        id: pull
+        run: |
+          base_image=$(dist/osbuilder get-base-image ${{ matrix.variant }})
+          podman pull "$base_image"
+          inspect=$(podman inspect "$base_image" | jq -r 'tostring')
+          echo "base_image=$base_image" >> $GITHUB_OUTPUT
+          echo "inspect=$inspect" >> $GITHUB_OUTPUT
+
       - name: Generate base image tags
         id: tags
         run: |
@@ -102,16 +118,6 @@ jobs:
 
           echo "tags=$tags" >> $GITHUB_OUTPUT
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to container registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
       - name: Generate main image Containerfile
         id: containerfile-main
         run: |
@@ -125,17 +131,35 @@ jobs:
           IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
           BASE_TAGS: ${{ steps.tags.outputs.tags }}
         run: |
-          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ",")
+          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" " ")
           echo "tags=$tags" >> $GITHUB_OUTPUT
 
-      - name: Build and push main image
+      - name: Build main image
         id: build-main
-        uses: docker/build-push-action@v7
+        uses: redhat-actions/buildah-build@v3
         with:
           context: .
-          file: ${{ steps.containerfile-main.outputs.containerfile }}
-          push: true
+          containerfiles: ${{ steps.containerfile-main.outputs.containerfile }}
           tags: ${{ steps.tags-main.outputs.tags }}
+          extra-args: --skip-unused-stages=false
+          build-args: CHUNKAH_CONFIG_STR=${{ steps.pull.outputs.inspect }}
+
+      - name: Push main image
+        id: push-main
+        uses: redhat-actions/push-to-registry@v3
+        with:
+          tags: ${{ steps.tags-main.outputs.tags }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Sign main image
+        if: github.event_name != 'pull_request'
+        env:
+          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
+          DIGEST: ${{ steps.build-main.outputs.digest }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+        run: |
+          cosign sign -y --recursive --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_PATH }}@${DIGEST}"
 
       - name: Generate Containerfile for image with NVIDIA drivers
         if: ${{ contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
@@ -154,34 +178,28 @@ jobs:
           IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}-nvidia"
           BASE_TAGS: ${{ steps.tags.outputs.tags }}
         run: |
-          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" ",")
+          tags=$(echo -e "$BASE_TAGS" | awk -v prefix="$IMAGE_PATH:" 'NF {print prefix $0}' | tr "\n" " ")
           echo "tags=$tags" >> $GITHUB_OUTPUT
 
-      - name: Build and push image with NVIDIA drivers
+      - name: Build image with NVIDIA drivers
         if: ${{ contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
         id: build-nvidia
-        uses: docker/build-push-action@v7
+        uses: redhat-actions/buildah-build@v3
         with:
           context: .
-          file: ${{ steps.containerfile-nvidia.outputs.containerfile }}
-          push: true
+          containerfiles: ${{ steps.containerfile-nvidia.outputs.containerfile }}
           tags: ${{ steps.tags-nvidia.outputs.tags }}
+          extra-args: --skip-unused-stages=false
+          build-args: CHUNKAH_CONFIG_STR=${{ steps.pull.outputs.inspect }}
 
-      - name: Install Cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@v3
+      - name: Push image with NVIDIA drivers
+        if: ${{ contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
+        id: push-nvidia
+        uses: redhat-actions/push-to-registry@v3
         with:
-          # Pin for bootc / containers-image sigstore attachment compatibility
-          cosign-release: v2.6.3
-
-      - name: Sign main image
-        if: github.event_name != 'pull_request'
-        env:
-          IMAGE_PATH: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.variant }}"
-          DIGEST: ${{ steps.build-main.outputs.digest }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
-        run: |
-          cosign sign -y --recursive --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_PATH }}@${DIGEST}"
+          tags: ${{ steps.tags-nvidia.outputs.tags }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
       - name: Sign image with NVIDIA drivers
         if: ${{ github.event_name != 'pull_request' && contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
