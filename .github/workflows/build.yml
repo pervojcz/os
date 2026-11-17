@@ -92,6 +92,13 @@ jobs:
           # Pin for bootc / containers-image sigstore attachment compatibility
           cosign-release: v2.6.3
 
+      - name: Log in to container registry
+        uses: redhat-actions/podman-login@v2
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
       - name: Pull and inspect base image
         id: pull
         run: |
@@ -149,8 +156,6 @@ jobs:
         uses: redhat-actions/push-to-registry@v3
         with:
           tags: ${{ steps.tags-main.outputs.tags }}
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
 
       - name: Sign main image
         if: github.event_name != 'pull_request'
@@ -198,8 +203,6 @@ jobs:
         uses: redhat-actions/push-to-registry@v3
         with:
           tags: ${{ steps.tags-nvidia.outputs.tags }}
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
 
       - name: Sign image with NVIDIA drivers
         if: ${{ github.event_name != 'pull_request' && contains(fromJson(needs.prepare.outputs.nvidiaVariants), matrix.variant) }}
