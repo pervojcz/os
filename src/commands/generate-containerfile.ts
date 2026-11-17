@@ -43,9 +43,36 @@ export async function generateContainerfile(args: {
           versions.image,
         )
       : getMainImagePart(variant, args.image_registry),
+    getChunkahPart(),
+    getLabelsPart(variant),
   ].join("\n\n");
 
   console.log(containerfile);
+}
+
+function getOsBuilderPart() {
+  return `
+FROM scratch AS ctx
+COPY ./dist /
+`.trim();
+}
+
+function getMainImagePart(variant: VariantConfig, imageRegistry?: string) {
+  return `
+FROM ${variant.baseImage} AS builder
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
+    --mount=type=cache,target=/var/cache \\
+    --mount=type=cache,target=/var/log \\
+    --mount=type=tmpfs,target=/tmp \\
+    set -ouex pipefail; \\
+    mkdir -p /var/lib/alternatives; \\
+    /ctx/osbuilder run-builder ${variant.name};
+
+RUN bootc container lint
+
+${getCosignKeyPart(imageRegistry)}
+`.trim();
 }
 
 function getNvidiaDriversPart(
@@ -70,7 +97,7 @@ function getNvidiaDriversPart(
 
   return `
 FROM ghcr.io/ublue-os/akmods-nvidia-open:main-${majorVersion} AS nvidia-akmods
-FROM ${imageRegistry}/${imageNamePrefix}-${variant.name}@${imageDigest}
+FROM ${imageRegistry}/${imageNamePrefix}-${variant.name}@${imageDigest} AS builder
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
     --mount=type=cache,target=/var/cache \\
@@ -85,30 +112,17 @@ RUN bootc container lint
 `.trim();
 }
 
-function getMainImagePart(variant: VariantConfig, imageRegistry?: string) {
+function getChunkahPart() {
   return `
-FROM ${variant.baseImage}
+FROM quay.io/coreos/chunkah AS chunkah
+ARG CHUNKAH_CONFIG_STR
+RUN --mount=from=builder,src=/,target=/chunkah,ro \\
+    --mount=type=bind,target=/run/src,rw \\
+    chunkah build --prune /sysroot/ --max-layers 128 \\
+      --label ostree.commit- --label ostree.final-diffid- \\
+      --output oci:/run/src/out
 
-${getLabelsPart(variant)}
-
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \\
-    --mount=type=cache,target=/var/cache \\
-    --mount=type=cache,target=/var/log \\
-    --mount=type=tmpfs,target=/tmp \\
-    set -ouex pipefail; \\
-    mkdir -p /var/lib/alternatives; \\
-    /ctx/osbuilder run-builder ${variant.name};
-
-RUN bootc container lint
-
-${getCosignKeyPart(imageRegistry)}
-`.trim();
-}
-
-function getOsBuilderPart() {
-  return `
-FROM scratch AS ctx
-COPY ./dist /
+FROM oci:out
 `.trim();
 }
 
