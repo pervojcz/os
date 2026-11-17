@@ -115,13 +115,13 @@ RUN bootc container lint
 `.trim();
 }
 
-function getChunkahPart(outDir: string) {
+function getChunkahPart(outDir: string, maxLayers = 128) {
   return `
 FROM quay.io/coreos/chunkah AS chunkah
 ARG CHUNKAH_CONFIG_STR
 RUN --mount=from=builder,src=/,target=/chunkah,ro \\
     --mount=type=bind,target=/run/src,rw \\
-    chunkah build --prune /sysroot/ --max-layers 128 \\
+    chunkah build --prune /sysroot/ --max-layers ${maxLayers} \\
       --label ostree.commit- --label ostree.final-diffid- \\
       --output oci:/run/src/${outDir}
 
