@@ -19,6 +19,7 @@ const circleVariant = defineVariant({
   },
   baseImage: "ghcr.io/ublue-os/silverblue-main:latest",
   nvidia: true,
+  maxLayers: 256,
   builder: async () => {
     await runSharedScriptsGraphical();
 
