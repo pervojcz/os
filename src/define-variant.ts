@@ -7,6 +7,7 @@ export type VariantConfig = {
     icon?: string;
   };
   nvidia?: boolean;
+  maxLayers?: number;
 };
 
 export const defineVariant = (

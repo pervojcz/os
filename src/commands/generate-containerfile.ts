@@ -46,7 +46,7 @@ export async function generateContainerfile(args: {
           versions.image,
         )
       : getMainImagePart(variant, args.image_registry),
-    getChunkahPart(chunkahOut),
+    getChunkahPart(chunkahOut, variant.maxLayers),
     getLabelsPart(variant),
   ].join("\n\n");
 
