@@ -1,10 +1,10 @@
 import type { VariantConfig } from "~/define-variant";
-import { getGitHubVariables } from "~/utils/get-github-variables";
 import {
   assertBootableImage,
+  getBaseImageLabels,
   getImageVersions,
-  getLabels,
-} from "~/utils/labels";
+} from "~/utils/base-image-labels";
+import { generateLabels } from "~/utils/generate-labels";
 import variants from "../../variants/variants";
 
 const osProjectName = "circle-os";
@@ -27,9 +27,11 @@ export async function generateContainerfile(args: {
     process.exit(1);
   }
 
-  const imageLabels = await getLabels(variant.baseImage);
-  await assertBootableImage(variant.baseImage, imageLabels);
-  const versions = await getImageVersions(variant.baseImage, imageLabels);
+  const outputLabels = generateLabels(variant);
+
+  const baseImageLabels = await getBaseImageLabels(variant.baseImage);
+  await assertBootableImage(variant.baseImage, baseImageLabels);
+  const versions = await getImageVersions(variant.baseImage, baseImageLabels);
 
   // unique per image so main + nvidia builds in the same workspace don't collide
   const chunkahOut = args.nvidia
@@ -46,8 +48,7 @@ export async function generateContainerfile(args: {
           versions.image,
         )
       : getMainImagePart(variant, args.image_registry),
-    getChunkahPart(chunkahOut, variant.maxLayers),
-    getLabelsPart(variant),
+    getChunkahPart(chunkahOut, outputLabels, variant.maxLayers),
   ].join("\n\n");
 
   console.log(containerfile);
@@ -115,7 +116,15 @@ RUN bootc container lint
 `.trim();
 }
 
-function getChunkahPart(outDir: string, maxLayers = 128) {
+function getChunkahPart(
+  outDir: string,
+  labels: Record<string, string> = {},
+  maxLayers = 128,
+) {
+  const labelArgs = Object.entries(labels)
+    .map(([key, value]) => "--label " + [key, JSON.stringify(value)].join("="))
+    .join(" ");
+
   return `
 FROM quay.io/coreos/chunkah AS chunkah
 ARG CHUNKAH_CONFIG_STR
@@ -123,6 +132,7 @@ RUN --mount=from=builder,src=/,target=/chunkah,ro \\
     --mount=type=bind,target=/run/src,rw \\
     chunkah build --prune /sysroot/ --max-layers ${maxLayers} \\
       --label ostree.commit- --label ostree.final-diffid- \\
+      ${labelArgs} \\
       --output oci:/run/src/${outDir}
 
 FROM oci:${outDir}
@@ -158,40 +168,4 @@ RUN set -ouex pipefail; \\
       '    use-sigstore-attachments: true' \\
       > /etc/containers/registries.d/${osProjectName}.yaml;
 `.trim();
-}
-
-function getLabelsPart(variant: VariantConfig) {
-  const labels = new Map<string, string>();
-  const gh = getGitHubVariables();
-
-  if (variant.metadata?.title) {
-    labels.set("org.opencontainers.image.title", variant.metadata.title);
-  }
-
-  if (variant.metadata?.description) {
-    labels.set(
-      "org.opencontainers.image.description",
-      variant.metadata.description,
-    );
-  }
-
-  if (gh.repo) {
-    labels.set(
-      "org.opencontainers.image.source",
-      `https://github.com/${gh.repo}`,
-    );
-
-    const ref = gh.commitSha ?? gh.refName;
-    const file = `variants/${variant.name}/README.md`;
-    labels.set(
-      "io.artifacthub.package.readme-url",
-      `https://raw.githubusercontent.com/${gh.repo}/${ref}/${file}`,
-    );
-  }
-
-  return Array.from(labels.entries())
-    .map(([key, value]) => {
-      return `LABEL ${JSON.stringify(key)}=${JSON.stringify(value)}`;
-    })
-    .join("\n");
 }
