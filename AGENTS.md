@@ -66,6 +66,9 @@ This repository uses direct Bun/TS commands (not package scripts).
   - buildah must use `--skip-unused-stages=false` and `--build-arg CHUNKAH_CONFIG_STR` (from `podman inspect` of the builder base) so bootc labels survive rechunking
   - when `IMAGE_REGISTRY` is set, the generated Containerfile installs Cosign trust
     (`/etc/pki/containers/circle-os.pub`, merges `policy.json`, writes `registries.d`)
+  - Fedora 45 ships its default container policy at `/usr/share/containers/policy.json`.
+    Merge into that file when `/etc/containers/policy.json` is absent, leaving the
+    administrator override path available.
   - non-PR builds sign the pushed image digest with Cosign v2.6.3 using `SIGNING_SECRET`
 - `iso.yml`
   - requires a previously signed GHCR image for the requested tag (`latest` or git tag)
@@ -94,7 +97,8 @@ ISO upload-related:
 ```bash
 cosign verify --key cosign.pub ghcr.io/<owner>/<repo>-<variant>@sha256:<digest>
 ```
-On-image trust paths: `/etc/pki/containers/os.pub`, `/etc/containers/policy.json`, `/etc/containers/registries.d/os.yaml`.
+On-image trust paths: `/etc/pki/containers/circle-os.pub`, the base image's policy
+path, and `/etc/containers/registries.d/circle-os.yaml`.
 
 ## Code Style Guidelines
 

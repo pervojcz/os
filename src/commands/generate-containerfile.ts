@@ -146,10 +146,12 @@ function getCosignKeyPart(imageRegistry?: string) {
 COPY ./cosign.pub ${keyPath}
 RUN set -ouex pipefail; \\
     mkdir -p /etc/containers/registries.d; \\
+    policy_path=/etc/containers/policy.json; \\
+    if [ ! -e "$policy_path" ]; then policy_path=/usr/share/containers/policy.json; fi; \\
     jq --arg registry ${JSON.stringify(imageRegistry)} \\
       '.transports.docker[$registry] = ${JSON.stringify(registryPolicyTemplate)}' \\
-      /etc/containers/policy.json > /tmp/policy.json; \\
-    mv /tmp/policy.json /etc/containers/policy.json; \\
+      "$policy_path" > /tmp/policy.json; \\
+    mv /tmp/policy.json "$policy_path"; \\
     printf '%s\\n' \\
       'docker:' \\
       '  ${imageRegistry}:' \\
